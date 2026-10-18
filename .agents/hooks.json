@@ -1,0 +1,16 @@
+{
+  "auto-format": {
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /c \"npx @biomejs/biome check --write . 2>nul || npx prettier --write . --ignore-unknown 2>nul || echo format-done\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

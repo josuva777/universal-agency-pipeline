@@ -1,0 +1,28 @@
+# Environment variables & secrets (CRITICAL: Zero-Leak Rule)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Testing & Logs
+test-results/
+playwright-report/
+blob-report/
+*.log
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
