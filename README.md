@@ -4,9 +4,12 @@
 [![MCP Standard](https://img.shields.io/badge/MCP-Standard%20Compatible-green)](https://modelcontextprotocol.io/)
 [![Agents Supported](https://img.shields.io/badge/Agents-Antigravity%20%7C%20Claude%20%7C%20Cursor%20%7C%20Windsurf-purple)](#-multi-agent-compatibility)
 
-The **Universal Agency Pipeline** is an enterprise-grade, token-efficient development system designed for autonomous software agencies and AI developers. 
+The **Universal Agency Pipeline** is an enterprise-grade, token-efficient autonomous development system. It transforms any AI coding assistant into a full-service software agency capable of building:
+1. 🌐 **Full-Stack Web & Mobile Apps** (Next.js, Supabase, Tailwind, Stripe)
+2. 🤖 **Production-Grade AI Agents** (Hybrid RAG, LangGraph State Machines, ReAct Loops, Streaming Copilots)
+3. 🎬 **Broadcast-Quality 4K Commercials & Media** (Remotion, Three.js 3D mockups, GSAP kinetic text, Microsoft Neural voiceover)
 
-Built on the open **Model Context Protocol (MCP)**, this stack works seamlessly across **Antigravity, Claude Code, Cursor, Windsurf, Claude Desktop, and VS Code (Cline / Roo Code)**. If you ever hit rate limits on one agent, you can switch immediately to another without breaking stride.
+Built on the open **Model Context Protocol (MCP)**, this stack works seamlessly across **Antigravity, Claude Desktop, Claude Code, Cursor, Windsurf, and VS Code (Cline / Roo Code)**.
 
 ---
 
@@ -17,53 +20,77 @@ flowchart TD
     subgraph GLOBAL["🌐 Always-On Core (Only ~840 Tokens)"]
         GH["GitHub MCP\nCommits, Branches & PRs"]
         CTX["Context7\nLive API & Docs Lookup"]
-        MEM["MemPalace\nLong-term Vector Memory"]
+        MEM["MemPalace\nLong-Term Vector Memory (344 Drawers)"]
         HEAD["Headroom\n47-92% Token Compression"]
     end
 
     subgraph WORKSPACE["📂 Project On-Demand (.agents/)"]
         PW["Playwright (Web) / Maestro (Mobile)"]
         SUPA["Supabase (Dev Branches)"]
-        DEP["Vercel / Cloudflare / Expo EAS"]
+        DEP["Vercel / Cloudflare / Google Cloud"]
         BIOME["Biome Sub-50ms Auto-Formatter"]
     end
 
-    subgraph PHASES["🔄 4-Phase Agency Pipeline"]
-        P1["Phase 1: Blueprint\nPlan Artifact + Generative UI Sandbox"]
-        P2["Phase 2: Isolated Branch Build\nGit Worktrees + MSW Mocking"]
-        P3["Phase 3: Automated Testing\nPlaywright + Lighthouse 90+ + Self-Healing"]
-        REV["Phase 3.5: Principal Architect Review\nSecurity, XSS & SQLi Diff Audit"]
-        P4["Phase 4: Ship & Client Handover\nPR + Preview URL + handover.md Brief"]
-        P1 --> P2 --> P3 --> REV --> P4
+    subgraph DISCIPLINES["⚡ 3 Turnkey Agency Engines"]
+        E1["🏭 Agent Factory\n4 Archetypes, Pydantic/Zod,\nLangfuse Tracing, Promptfoo Evals"]
+        E2["🎬 Creative Studio\nRemotion 4K/60fps, Three.js 3D,\nEdge-TTS, EBU R128 (-14 LUFS)"]
+        E3["📦 Full-Stack Monorepo\nApp + Agent + Marketing Video\nin 1 Unified Turnkey Folder"]
     end
 
-    GLOBAL --> PHASES
-    WORKSPACE --> PHASES
+    GLOBAL --> DISCIPLINES
+    WORKSPACE --> DISCIPLINES
 ```
 
 ---
 
-## ⚡ Quickstart (1 Command)
+## ⚡ 1-Sentence Natural Language Triggers
 
-### Windows (PowerShell)
-```powershell
-git clone https://github.com/josuva777/universal-agency-pipeline.git
-cd universal-agency-pipeline
-.\setup.ps1
+Whenever you open a new folder in VS Code, simply use these natural language phrases:
+
+| Service Wanted | What to Say in Chat | What Happens Automatically |
+| :--- | :--- | :--- |
+| **New Web/Mobile App** | `scaffold workspace` | Configures isolated dev MCPs, sub-50ms Biome auto-formatting, and tests. |
+| **Build Any AI Agent** | `create agent for [description]` | Scans PC hardware, classifies archetype (RAG/Workflow/Action/Copilot), generates `AGENT_SPEC.md`, Pydantic/Zod schemas, and Langfuse tracing. |
+| **Render 4K Video & Brand** | `create video for [brief]` | Generates Microsoft Neural voiceover, 4K Remotion commercial, Three.js 3D mockup, SVG logo, and HTML Brand Portal. |
+| **All-in-One Product Launch** | `build full app for [description]` | Builds the Next.js full-stack app, embeds the streaming agent in `/api/chat`, and puts both marketing & demo videos in `creative/`! |
+
+---
+
+## 📦 3-in-1 Turnkey Monorepo Architecture
+
+When clients order an AI product, never build disconnected pieces in separate folders. Deliver a unified monorepo:
+
+```
+client-turnkey-project/
+├── app/                        # 1. THE WEB APP & CHATBOT
+│   ├── page.tsx                # High-converting Landing Page
+│   ├── chat/page.tsx           # Real-time Streaming AI Chat UI
+│   └── api/chat/route.ts       # 🤖 Streaming Agent Backend (Vercel AI SDK)
+│
+├── creative/                   # 2 & 3. BOTH VIDEOS & BRANDING
+│   ├── commercial_promo.mp4    # 🎬 Video 1: 4K Commercial Ad (for social media)
+│   ├── demo_how_to_use.mp4     # 📱 Video 2: "How to Use" Onboarding Walkthrough
+│   ├── logo_master.svg         # Official vector brand logo
+│   └── brand_kit.html          # Interactive Client Portal (swatches, audio, download links)
+│
+├── AGENT_SPEC.md               # Strict circuit breakers (max 8 steps) & schemas
+└── README.md                   # Client handover instructions
 ```
 
-### macOS / Linux
-```bash
-git clone https://github.com/josuva777/universal-agency-pipeline.git
-cd universal-agency-pipeline
-chmod +x setup.sh && ./setup.sh
-```
+---
 
-The script automatically:
-1. Installs an isolated Python 3.13 runtime via `uv`
-2. Installs `mempalace` (local memory) and `headroom-ai[mcp]` (token compressor)
-3. Prompts for your GitHub Personal Access Token (stored safely in OS environment variables)
-4. Copies and links the MCP configurations for **Antigravity, Cursor, Windsurf, Claude Desktop, and Claude Code**
+## 🛡️ Zero-Freeze Hardware Scanner (`system_scanner.py`)
+To prevent heavy AI models from freezing laptops with 8GB RAM, our built-in hardware scanner audits your CPU, RAM, and GPU:
+- **Tier 1 (Light / $\le$ 12GB RAM, iGPU)**: Automatically restricts local models to lightweight 1B–3B weights (Llama-3.2-1B, Qwen2.5-Coder-1.5B, Kokoro 82M) and routes heavy reasoning to **Google Gemini Cloud APIs (0 MB local storage used)**.
+- **Tier 2 (Mid / 16–24GB RAM, 6–8GB VRAM)**: Enables 7B–8B quantized models (Q4_K_M).
+- **Tier 3 (Heavy / $\ge$ 32GB RAM, 12GB+ VRAM)**: Enables 14B–32B local inference.
+
+---
+
+## ☁️ Zero-Bloat Cloud Storage: Google Drive 5TB & Google Cloud
+- **5 TB Google Drive (`G:\My Drive\Agency Deliverables`)**: All rendered 4K commercial videos, audio masters, and brand portals automatically sync to your Google Drive. Zero C: drive space consumed!
+- **Google Cloud Storage (`gcs_uploader.py`)**: Direct bucket upload with public streaming URLs.
+- **MemPalace Long-Term Memory**: All uploaded asset URLs are permanently remembered in local vector drawers (344 drawers active) so you can ask for them anytime in any session.
 
 ---
 
@@ -73,20 +100,10 @@ The script automatically:
 | :--- | :--- | :--- |
 | **Google Antigravity** | `~/.gemini/config/mcp_config.json` | Native global MCP + skill auto-loading |
 | **Claude Desktop** | `%APPDATA%\Claude\claude_desktop_config.json` | Automatic stdio & Streamable HTTP support |
-| **Cursor** | `~/.cursor/mcp.json` | Loads all 4 core tools into Cursor Composer |
+| **Cursor** | `~/.cursor/mcp.json` | Loads all core tools into Cursor Composer |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | Native Windsurf Cascade MCP integration |
 | **Claude Code CLI** | `~/.claude.json` | Terminal agent with full MCP access |
 | **VS Code (Cline / Roo Code)** | `.vscode/mcp.json` | Full stdio connection |
-
----
-
-## 🛡️ The Token Guardrail (Why It Stays Fast)
-Most developers overload their AI with 15 active MCP servers, wasting 8,000+ tokens on every single message before typing a word.
-
-This repository enforces strict **2-Tier Architecture**:
-1. **Always-On Core (~840 tokens)**: GitHub + Context7 + MemPalace + Headroom.
-2. **Project-Only (`.agents/`)**: Playwright, Supabase, Vercel, and Cloudflare load **only** inside projects that use them.
-3. **Pre-Deploy Security**: Security pentests (Strix) and AI evaluations (Promptfoo) run strictly as **one-shot CLI commands**, never bloating persistent chat context.
 
 ---
 
@@ -97,8 +114,8 @@ universal-agency-pipeline/
 ├── .agents/                        # Universal workspace template for client projects
 │   ├── mcp_config.json             # Web MCPs (Playwright, Supabase, Vercel, Cloudflare)
 │   ├── mcp_config.mobile.json      # Mobile MCPs (Maestro, Supabase)
-│   ├── hooks.json                  # Sub-50ms Biome formatting hook
-│   └── AGENTS.md                   # Project-level rules & zero-leak guardrails
+│   ├── hooks.json                  # Sub-50ms Biome auto-formatting hook
+│   └── AGENTS.md                   # Enterprise zero-leak guardrails
 ├── configs/                        # Ready-to-use configs for every AI agent
 │   ├── antigravity/mcp_config.json
 │   ├── claude-desktop/claude_desktop_config.json
@@ -108,70 +125,36 @@ universal-agency-pipeline/
 ├── skills/                         # Reusable agent skills
 │   ├── agency-pipeline/SKILL.md    # 4-Phase feature workflow
 │   ├── agency-scaffold/SKILL.md    # "scaffold workspace" generator
-│   └── pre-deploy-security/SKILL.md# Strix & Promptfoo CLI runner
-├── templates/
+│   ├── agent-builder/              # Universal AI Agent Factory & Scaffolder
+│   │   ├── system_scanner.py       # Hardware safety auditor
+│   │   ├── scaffold_agent.py       # 1-command agent generator
+│   │   └── references/             # RAG, Workflow, ReAct, Copilot cards
+│   ├── creative-studio/            # Broadcast Commercial & Brand Studio
+│   │   └── references/             # Shaders, 3D rigs, EBU R128 mastering
+│   └── pre-deploy-security/        # Strix & Promptfoo CLI runner
+├── templates/                      # Full Project Starters
+│   ├── fullstack-agent-app/        # Turnkey Monorepo: App + Agent + Creative
+│   ├── creative-agent-studio/      # Complete Remotion Video & Audio Engine
+│   │   ├── start_studio.bat        # 1-Click Desktop Launcher
+│   │   ├── studio.ps1              # Interactive Terminal Dashboard
+│   │   └── agents/                 # Orchestrator, SFX, Logo, GCS, R2
 │   ├── handover-template.md        # Client delivery brief
-│   ├── CHANGELOG.md                # KeepAChangelog starter
-│   └── .gitignore                  # Zero-leak secret filter
-├── setup.ps1                       # Windows installer
-├── setup.sh                        # macOS / Linux installer
+│   └── CHANGELOG.md                # KeepAChangelog template
+├── setup.ps1                       # Windows 1-click installer
+├── setup.sh                        # macOS / Linux 1-click installer
+├── .gitignore                      # Zero-leak secret filter
 ├── AGENTS.md                       # Master rules file for AI agents
-└── README.md
+└── README.md                       # Master Documentation
 ```
 
 ---
 
-## 💼 How to Scaffold a Client Project
-Inside any new or existing project folder, run:
-```bash
-# In your AI chat box:
-scaffold workspace
-```
-Or manually copy the `.agents/` folder into your project root:
-```bash
-cp -r /path/to/universal-agency-pipeline/.agents ./your-project/
-```
-
----
-
-## 🏭 System 1: Universal Agent Factory (`skills/agent-builder`)
-Turn your agency into an on-demand AI Agent Factory that can build any client system with enterprise reliability:
-- **4 Universal Archetypes**:
-  - 🔍 **Hybrid RAG**: LlamaIndex + Qdrant + BM25 keyword + Cohere Rerank (95%+ retrieval accuracy without hallucinations).
-  - 🔄 **Workflow State Machine**: LangGraph / Mastra deterministic graphs with checkpointing and human-in-the-loop escalation.
-  - 🤖 **Autonomous Action**: ReAct loop + E2B sandboxed execution (`@e2b/code-interpreter`) + MCP tools.
-  - 💬 **Conversational Copilot**: Vercel AI SDK + Upstash semantic caching (<50ms latency, slashes repeat token costs by 40–60%) + Llama Guard.
-- **Client Safety Standard**:
-  - Zero unstructured outputs (strictly Pydantic / Zod schemas).
-  - Circuit breakers: `max_iterations = 8`, per-tool timeouts, 3-retry escalation.
-  - Out-of-the-box Langfuse observability tracing (3 lines of code).
-  - Built-in Promptfoo adversarial redteam eval suites.
-
----
-
-## 🎬 System 2: Creative Production Studio (`skills/creative-studio`)
-A $0 broadcast-grade creative media and commercial production studio located in `templates/creative-agent-studio/`:
-- **4K 60FPS Video Engine**: Built on **Remotion v4** and **GSAP v3**. 100% deterministic React code with frame-accurate math (no generative hallucinations or rubbery AI artifacts).
-- **3D Hardware & Visual Effects**:
-  - Photorealistic 3D iPhone and laptop mockups rendered via **React Three Fiber / Three.js**.
-  - Atmospheric floating particle fields, ambient dust motes, and volumetric glow.
-  - Postprocessing: Chromatic aberration, subtle film grain, and vignette shaders.
-- **Broadcast Audio Engineering**:
-  - Microsoft Neural TTS (100+ native accents) + local Kokoro-ONNX ($0 unlimited).
-  - Millisecond karaoke word alignment via Faster-Whisper.
-  - **Automatic Sidechain Ducking**: Background music smoothly attenuates by 12dB under speech.
-  - **EBU R128 Loudness Mastering**: Mastered to `-14.0 LUFS` with `-1.0 dBFS` True Peak.
-- **Procedural Vector Brand Identity**:
-  - Procedural SVG logos, metallic gradients, and geometric marks scaling infinitely from favicon to 8K billboard.
-
-### Run Creative Studio:
-```bash
-cd templates/creative-agent-studio
-uv run python -m agents.orchestrator --brief "Luxury Fintech Card with 3D mockups" --output ./assets/outputs/fintech-ad
-```
+## 🔒 Zero-Leak Security Discipline
+- **NEVER** stages `.env`, `.env.local`, API tokens, or credentials.
+- Multi-layer `.gitignore` protects credentials, model weights, and media temp files.
+- Automated secret-scanning audit before commits.
 
 ---
 
 ## 📄 License
-MIT License. Free to use for personal, commercial, and agency projects.
-
+MIT License. Free to use for personal, commercial, and client agency projects.
