@@ -16,6 +16,8 @@ from agents.transcriber import AudioTranscriber, CaptionSegment
 from agents.audio_mixer import AudioMixer
 from agents.broll_fetcher import BRollFetcher, BRollClip
 from agents.logo_generator import LogoGenerator, BrandPalette
+from agents.sfx_generator import ProceduralSFXGenerator
+from agents.brand_kit_exporter import BrandKitExporter
 
 # Ensure UTF-8 output on Windows
 if sys.platform == "win32":
@@ -54,27 +56,60 @@ class CreativeProductionState(TypedDict):
     remotion_props_path: Optional[str]
     status: str
 
-async def run_creative_pipeline(brief: str, output_directory: str) -> Dict[str, Any]:
+STYLE_PRESETS = {
+    "fintech": {
+        "primary": "#6366f1",
+        "secondary": "#8b5cf6",
+        "accent": "#06b6d4",
+        "voice": "en-US-GuyNeural",
+        "tagline": "INTELLIGENCE REDEFINED",
+    },
+    "saas": {
+        "primary": "#3b82f6",
+        "secondary": "#6366f1",
+        "accent": "#10b981",
+        "voice": "en-US-AriaNeural",
+        "tagline": "WORKFLOW ACCELERATED",
+    },
+    "streetwear": {
+        "primary": "#f43f5e",
+        "secondary": "#fb923c",
+        "accent": "#facc15",
+        "voice": "en-US-ChristopherNeural",
+        "tagline": "UNSTOPPABLE MOMENTUM",
+    },
+    "editorial": {
+        "primary": "#eab308",
+        "secondary": "#f472b6",
+        "accent": "#2dd4bf",
+        "voice": "en-GB-SoniaNeural",
+        "tagline": "EXCELLENCE IN EVERY DETAIL",
+    },
+}
+
+async def run_creative_pipeline(brief: str, output_directory: str, style: str = "fintech") -> Dict[str, Any]:
     out_dir = Path(output_directory)
     out_dir.mkdir(parents=True, exist_ok=True)
     video_dir = out_dir / "video_assets"
     video_dir.mkdir(parents=True, exist_ok=True)
 
+    chosen_style = STYLE_PRESETS.get(style.lower(), STYLE_PRESETS["fintech"])
+
     console.print(Panel.fit(
         f"[bold cyan]🎬 Creative Studio AI Orchestrator[/bold cyan]\n"
         f"[dim]Brief:[/dim] {brief}\n"
-        f"[dim]Output:[/dim] {out_dir.resolve()}",
+        f"[dim]Aesthetic Style Preset:[/dim] [bold yellow]{style.upper()}[/bold yellow]\n"
+        f"[dim]Output Directory:[/dim] {out_dir.resolve()}",
         border_style="cyan"
     ))
 
     # 1. Script & Visual Scene Planning
     console.print("[bold yellow]⚡ Phase 1: Directing Script & 3D Scene Architecture...[/bold yellow]")
-    # Deterministic high-converting agency commercial script
     brand_slug = "".join([c for c in brief.split()[0] if c.isalnum()]).capitalize() or "Apex"
     script = CommercialScript(
         project_title=f"{brand_slug} Commercial",
         brand_name=brand_slug,
-        tagline="INTELLIGENCE AMPLIFIED",
+        tagline=chosen_style["tagline"],
         voiceover_script=(
             f"The future isn't coming. It's already here. "
             f"Meet {brand_slug}. Engineered from the ground up for breakthrough performance, "
@@ -88,20 +123,25 @@ async def run_creative_pipeline(brief: str, output_directory: str) -> Dict[str, 
             ScenePlan(id=4, type="metrics", headline="+400% FASTER", subtext="Validated by industry benchmarks", duration_seconds=3.5, vfx_type="particles"),
             ScenePlan(id=5, type="cta", headline=brand_slug.upper(), subtext="Start Free Today", duration_seconds=4.0, vfx_type="glow"),
         ],
-        primary_color="#6366f1",
-        secondary_color="#8b5cf6",
-        accent_color="#06b6d4"
+        primary_color=chosen_style["primary"],
+        secondary_color=chosen_style["secondary"],
+        accent_color=chosen_style["accent"]
     )
 
-    # 2. Neural Audio Voiceover Synthesis
-    console.print("[bold green]🎙️ Phase 2: Synthesizing Microsoft Neural Voiceover...[/bold green]")
+    # 2. Neural Audio Voiceover Synthesis + Procedural SFX Library
+    console.print("[bold green]🎙️ Phase 2: Synthesizing Neural Voiceover & Sound Effects...[/bold green]")
     audio_path = str(out_dir / "voiceover.wav")
     voice_res = await VoiceEngine.synthesize(
         text=script.voiceover_script,
         output_path=audio_path,
-        voice="en-US-GuyNeural"
+        voice=chosen_style["voice"]
     )
-    console.print(f"  ✓ Voiceover generated: {voice_res.duration_seconds:.2f}s with {len(voice_res.word_timestamps)} word boundaries")
+    console.print(f"  ✓ Voiceover generated ({chosen_style['voice']}): {voice_res.duration_seconds:.2f}s")
+
+    # Generate CC0 sound library into assets/audio
+    assets_dir = out_dir.resolve().parents[1] if len(out_dir.resolve().parents) > 1 else out_dir.resolve().parent
+    sfx_files = ProceduralSFXGenerator.generate_sound_library(assets_dir)
+    console.print(f"  ✓ CC0 Micro-SFX suite ready ({len(sfx_files)} sound effects generated)")
 
     # 3. Subtitles & Karaoke Word Alignment
     console.print("[bold cyan]📝 Phase 3: Generating Millisecond Karaoke Captions...[/bold cyan]")
@@ -160,11 +200,28 @@ async def run_creative_pipeline(brief: str, output_directory: str) -> Dict[str, 
     props_file = out_dir / "remotion_props.json"
     with open(props_file, "w", encoding="utf-8") as f:
         json.dump(remotion_props, f, indent=2)
-
     console.print(f"  ✓ Remotion configuration payload written to: {props_file}")
+
+    # 7. Executive Client Brand & Deliverables Portal
+    console.print("[bold white]🌐 Phase 7: Generating Executive Client Brand Portal...[/bold white]")
+    with open(logo_meta["svg_path"], "r", encoding="utf-8") as f:
+        svg_raw = f.read()
+
+    portal_path = BrandKitExporter.generate_portal(
+        output_dir=out_dir,
+        brand_name=script.brand_name,
+        tagline=script.tagline,
+        palette={"primary": script.primary_color, "secondary": script.secondary_color, "accent": script.accent_color},
+        svg_content=svg_raw,
+        script_text=script.voiceover_script,
+        voiceover_rel_path="voiceover.wav",
+        subtitles_rel_path="subtitles.srt"
+    )
+    console.print(f"  ✓ Interactive Client Portal created: {portal_path}")
 
     console.print(Panel.fit(
         f"[bold green]✨ Creative Studio Production Package Ready![/bold green]\n"
+        f"• Interactive Client Portal: [link={portal_path}]{portal_path}[/link]\n"
         f"• Voiceover: {audio_path}\n"
         f"• Subtitles: {srt_path}\n"
         f"• Logo Suite: {logo_meta['svg_path']}\n"
@@ -181,10 +238,11 @@ app = typer.Typer(help="Creative Studio CLI Orchestrator")
 @app.command()
 def produce(
     brief: str = typer.Option(..., "--brief", "-b", help="Client creative brief description"),
-    output: str = typer.Option("./assets/outputs/production_run", "--output", "-o", help="Output directory")
+    output: str = typer.Option("./assets/outputs/production_run", "--output", "-o", help="Output directory"),
+    style: str = typer.Option("fintech", "--style", "-s", help="Aesthetic preset: fintech | saas | streetwear | editorial")
 ):
     """Executes end-to-end multi-agent creative commercial production."""
-    asyncio.run(run_creative_pipeline(brief, output))
+    asyncio.run(run_creative_pipeline(brief, output, style=style))
 
 if __name__ == "__main__":
     app()
