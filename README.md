@@ -149,6 +149,9 @@ universal-agency-pipeline/
 │   │   └── references/             # RAG, Workflow, ReAct, Copilot cards
 │   ├── creative-studio/            # Broadcast Commercial & Brand Studio
 │   │   └── references/             # Shaders, 3D rigs, EBU R128 mastering
+│   ├── taste-skill/                # 🎨 Anti-Slop Frontend Art Direction (Leon Lin v2)
+│   │   ├── scripts/                # draw.mjs, inspect.mjs, assets.mjs
+│   │   └── library/                # 247 Curated Award-Winning Blueprints
 │   └── pre-deploy-security/        # Strix & Promptfoo CLI runner
 ├── templates/                      # Full Project Starters
 │   ├── fullstack-agent-app/        # Turnkey Monorepo: App + Agent + Creative
