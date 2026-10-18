@@ -6,6 +6,11 @@ from pathlib import Path
 from typing import TypedDict, List, Dict, Any, Optional
 import httpx
 import typer
+from dotenv import load_dotenv
+
+# Load local environment variables from .env
+load_dotenv()
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn

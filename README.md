@@ -43,16 +43,34 @@ flowchart TD
 
 ---
 
-## ⚡ 1-Sentence Natural Language Triggers
+## ⚡ 1-Sentence Natural Language Triggers (Chat-First Workflow)
 
-Whenever you open a new folder in VS Code, simply use these natural language phrases:
+You never have to run complicated terminal scripts. Simply talk to your AI agent in chat:
 
 | Service Wanted | What to Say in Chat | What Happens Automatically |
 | :--- | :--- | :--- |
 | **New Web/Mobile App** | `scaffold workspace` | Configures isolated dev MCPs, sub-50ms Biome auto-formatting, and tests. |
 | **Build Any AI Agent** | `create agent for [description]` | Scans PC hardware, classifies archetype (RAG/Workflow/Action/Copilot), generates `AGENT_SPEC.md`, Pydantic/Zod schemas, and Langfuse tracing. |
-| **Render 4K Video & Brand** | `create video for [brief]` | Generates Microsoft Neural voiceover, 4K Remotion commercial, Three.js 3D mockup, SVG logo, and HTML Brand Portal. |
+| **Render 4K Video & Brand** | `create video for [brief]` | Runs AI Director, synthesizes neural voice, detects Veo AI / custom b-roll, renders 4K Remotion commercial, and exports straight to 5TB Google Drive. |
 | **All-in-One Product Launch** | `build full app for [description]` | Builds the Next.js full-stack app, embeds the streaming agent in `/api/chat`, and puts both marketing & demo videos in `creative/`! |
+
+---
+
+## 🛡️ Multi-Model Automatic Failover (Zero-Crash Guarantee)
+
+To ensure your agency runs continuously even when cloud APIs encounter rate limits or outages, our orchestration engine features a 4-tier automatic failover waterfall:
+
+```mermaid
+flowchart TD
+    BRIEF["Client Creative / Agent Brief"] --> T1{"1. Google Gemini 1.5/2.0/3\n(Fastest Free Cloud Tier)"}
+    T1 -- "Success" --> OUT["Production Script & 3D Scene Architecture"]
+    T1 -- "429 Rate Limit / Error" --> T2{"2. Groq (Llama 3.3 70B)\n(500 tokens/sec Free Tier)"}
+    T2 -- "Success" --> OUT
+    T2 -- "Rate Limit / Error" --> T3{"3. OpenAI (GPT-4o-mini)\n(Alternative Cloud Provider)"}
+    T3 -- "Success" --> OUT
+    T3 -- "Offline / No Connection" --> T4["4. Deterministic Master Engine\n(100% Reliable Offline Baseline)"]
+    T4 --> OUT
+```
 
 ---
 

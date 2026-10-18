@@ -4,6 +4,10 @@ import asyncio
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class BRollClip(BaseModel):
     id: str
