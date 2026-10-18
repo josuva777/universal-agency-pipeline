@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎬 Creative Studio • Video Preview Player</title>
+  <style>
+    body {
+      background: #090a0f;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 40px 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p { color: rgba(255, 255, 255, 0.6); margin-bottom: 32px; }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+      max-width: 1200px;
+    }
+    .video-card {
+      background: #14161f;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      width: 520px;
+    }
+    .video-card h2 { font-size: 20px; margin-bottom: 6px; }
+    .video-card span { font-size: 13px; color: #06b6d4; font-family: monospace; display: block; margin-bottom: 14px; }
+    video {
+      width: 100%;
+      border-radius: 12px;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Rendered Video Player Gallery</h1>
+  <p>Deterministic 60 FPS • Real-time Three.js 3D Physics • Non-AI Rubbery Hallucinations</p>
+
+  <div class="gallery">
+    <!-- Video 1: 3D Product Showcase -->
+    <div class="video-card">
+      <h2>📱 3D Product Showcase (Rendered MP4)</h2>
+      <span>product_preview.mp4 • 892 KB • 60 FPS • Three.js</span>
+      <video controls autoplay loop muted>
+        <source src="product_preview.mp4" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
+    </div>
+
+    <!-- Video 2: Smoke Test Engine -->
+    <div class="video-card">
+      <h2>⚡ Engine Smoke Test (Rendered MP4)</h2>
+      <span>smoke_test.mp4 • 120 KB • 60 FPS • Remotion Core</span>
+      <video controls autoplay loop muted>
+        <source src="smoke_test.mp4" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
+    </div>
+  </div>
+</body>
+</html>
