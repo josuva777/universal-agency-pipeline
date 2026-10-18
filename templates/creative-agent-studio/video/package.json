@@ -1,0 +1,32 @@
+{
+  "name": "creative-studio-video",
+  "version": "0.1.0",
+  "description": "Deterministic 4K video & 3D VFX motion graphics engine - Remotion + Three.js + GSAP",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render",
+    "render:commercial": "remotion render src/index.ts Commercial --output ../assets/outputs/commercial.mp4 --codec h264",
+    "render:product": "remotion render src/index.ts ProductShowcase --output ../assets/outputs/product.mp4",
+    "smoke-test": "remotion render src/index.ts SmokeTest --output ../assets/outputs/smoke_test.mp4"
+  },
+  "dependencies": {
+    "remotion": "^4.0.0",
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "@remotion/three": "^4.0.0",
+    "@remotion/motion-blur": "^4.0.0",
+    "@remotion/media-utils": "^4.0.0",
+    "three": "^0.168.0",
+    "@react-three/fiber": "^8.17.0",
+    "@react-three/drei": "^9.112.0",
+    "gsap": "^3.12.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/three": "^0.168.0",
+    "typescript": "^5.6.0"
+  }
+}
