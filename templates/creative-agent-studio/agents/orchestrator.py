@@ -89,50 +89,103 @@ STYLE_PRESETS = {
 }
 
 async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialScript:
-    """Generates customized commercial script & scenes via Google Gemini if API key is present."""
+    """Generates customized commercial script & scenes with automatic multi-model failover (Gemini -> Groq -> OpenAI -> Offline Engine)."""
     brand_slug = "".join([c for c in brief.split()[0] if c.isalnum()]).capitalize() or "Apex"
 
-    # Check for Google Gemini API Key
+    prompt = (
+        f"You are an elite creative commercial director. Create a 20-second commercial script and scene plan for:\n"
+        f"Brief: {brief}\n\n"
+        f"Respond with ONLY a valid JSON object matching this structure:\n"
+        f"{{\n"
+        f'  "project_title": "{brand_slug} Commercial",\n'
+        f'  "brand_name": "{brand_slug}",\n'
+        f'  "tagline": "SHORT PUNCHY TAGLINE",\n'
+        f'  "voiceover_script": "Engaging punchy 3-sentence voiceover script for audio narration",\n'
+        f'  "primary_color": "{chosen_style["primary"]}",\n'
+        f'  "secondary_color": "{chosen_style["secondary"]}",\n'
+        f'  "accent_color": "{chosen_style["accent"]}",\n'
+        f'  "scenes": [\n'
+        f'    {{"id": 1, "type": "hero", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.0, "vfx_type": "particles"}},\n'
+        f'    {{"id": 2, "type": "tension", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.5, "vfx_type": "chromatic"}},\n'
+        f'    {{"id": 3, "type": "mockup_3d", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 5.0, "vfx_type": "glow"}},\n'
+        f'    {{"id": 4, "type": "metrics", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.5, "vfx_type": "particles"}},\n'
+        f'    {{"id": 5, "type": "cta", "headline": "{brand_slug.upper()}", "subtext": "Subtext", "duration_seconds": 4.0, "vfx_type": "glow"}}\n'
+        f'  ]\n'
+        f"}}"
+    )
+
+    # 1. Primary: Google Gemini (Free Tier)
     gemini_key = os.getenv("GEMINI_API_KEY")
     if gemini_key and gemini_key != "your_gemini_api_key_here":
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            prompt = (
-                f"You are an elite creative commercial director. Create a 20-second commercial script and scene plan for:\n"
-                f"Brief: {brief}\n\n"
-                f"Respond with ONLY a valid JSON object matching this structure:\n"
-                f"{{\n"
-                f'  "project_title": "{brand_slug} Commercial",\n'
-                f'  "brand_name": "{brand_slug}",\n'
-                f'  "tagline": "SHORT PUNCHY TAGLINE",\n'
-                f'  "voiceover_script": "Engaging punchy 3-sentence voiceover script for audio narration",\n'
-                f'  "primary_color": "{chosen_style["primary"]}",\n'
-                f'  "secondary_color": "{chosen_style["secondary"]}",\n'
-                f'  "accent_color": "{chosen_style["accent"]}",\n'
-                f'  "scenes": [\n'
-                f'    {{"id": 1, "type": "hero", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.0, "vfx_type": "particles"}},\n'
-                f'    {{"id": 2, "type": "tension", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.5, "vfx_type": "chromatic"}},\n'
-                f'    {{"id": 3, "type": "mockup_3d", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 5.0, "vfx_type": "glow"}},\n'
-                f'    {{"id": 4, "type": "metrics", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.5, "vfx_type": "particles"}},\n'
-                f'    {{"id": 5, "type": "cta", "headline": "{brand_slug.upper()}", "subtext": "Subtext", "duration_seconds": 4.0, "vfx_type": "glow"}}\n'
-                f'  ]\n'
-                f"}}"
-            )
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"responseMimeType": "application/json"}
             }
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=12.0) as client:
                 res = await client.post(url, json=payload)
                 if res.status_code == 200:
                     data = res.json()
                     raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
                     parsed = json.loads(raw_text)
+                    console.print("[dim green]✓ Script generated via Google Gemini[/dim green]")
+                    return CommercialScript(**parsed)
+                else:
+                    console.print(f"[dim yellow]Gemini returned status {res.status_code}, falling back...[/dim yellow]")
+        except Exception as e:
+            console.print(f"[dim yellow]Notice: Gemini bypassed: {e}, attempting fallback...[/dim yellow]")
+
+    # 2. Secondary: Groq Llama 3.3 70B (100% Free Tier, 500 tokens/sec)
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key and groq_key != "your_groq_api_key_here":
+        try:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {groq_key}"}
+            payload = {
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": "You are an elite creative director. Respond with pure JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                "response_format": {"type": "json_object"}
+            }
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                if res.status_code == 200:
+                    raw_text = res.json()["choices"][0]["message"]["content"]
+                    parsed = json.loads(raw_text)
+                    console.print("[dim green]✓ Script generated via Groq (Llama 3.3 70B)[/dim green]")
                     return CommercialScript(**parsed)
         except Exception as e:
-            console.print(f"[dim yellow]Notice: Gemini dynamic scriptwriter bypassed: {e}[/dim yellow]")
+            console.print(f"[dim yellow]Notice: Groq bypassed: {e}, attempting next fallback...[/dim yellow]")
 
-    # Fallback: High-precision crafted baseline script
+    # 3. Tertiary: OpenAI (gpt-4o-mini)
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key and openai_key != "your_openai_api_key_here":
+        try:
+            url = "https://api.openai.com/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {openai_key}"}
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": "You are an elite creative director. Respond with pure JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                "response_format": {"type": "json_object"}
+            }
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                if res.status_code == 200:
+                    raw_text = res.json()["choices"][0]["message"]["content"]
+                    parsed = json.loads(raw_text)
+                    console.print("[dim green]✓ Script generated via OpenAI (GPT-4o-mini)[/dim green]")
+                    return CommercialScript(**parsed)
+        except Exception as e:
+            console.print(f"[dim yellow]Notice: OpenAI bypassed: {e}[/dim yellow]")
+
+    # 4. Final: Deterministic Built-in Offline Engine (100% Guaranteed Success, Zero Network Required)
+    console.print("[dim cyan]✓ Using Deterministic Master Baseline Script[/dim cyan]")
     return CommercialScript(
         project_title=f"{brand_slug} Commercial",
         brand_name=brand_slug,

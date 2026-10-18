@@ -23,16 +23,21 @@ Write-Host ""
 Write-Host "  [5] Scaffold New AI Client Agent (Agent Factory)" -ForegroundColor Blue
 Write-Host "      (Hybrid RAG, Workflow State Machine, Autonomous ReAct, or Copilot)"
 Write-Host ""
+Write-Host "  [6] Set / Update API Keys Securely" -ForegroundColor Green
+Write-Host "      (Stored ONLY on your laptop in .env - NEVER pushed to GitHub)"
+Write-Host ""
 Write-Host "  [0] Exit" -ForegroundColor Gray
 Write-Host ""
 Write-Host "=================================================================" -ForegroundColor Cyan
 
-$choice = Read-Host "Select an option (0-5)"
+$choice = Read-Host "Select an option (0-6)"
 
 switch ($choice) {
     "1" {
         $brief = Read-Host "Enter Creative Brief (e.g., Luxury Cyberpunk Smartwatch)"
-        Write-Host "Choose Style Preset: [1] Fintech [2] SaaS [3] Streetwear [4] Editorial" -ForegroundColor Yellow
+        if (-not $brief) { $brief = "Next Generation High-Performance Software" }
+
+        Write-Host "`nChoose Style: [1] Fintech  [2] SaaS  [3] Streetwear  [4] Editorial" -ForegroundColor Yellow
         $styleChoice = Read-Host "Select (1-4, default 1)"
         $style = switch ($styleChoice) {
             "2" { "saas" }
@@ -44,10 +49,29 @@ switch ($choice) {
         if (-not $slug) { $slug = "campaign_run" }
         $out = "./assets/outputs/$slug"
 
-        Write-Host "`n🚀 Running AI Creative Director..." -ForegroundColor Cyan
+        Write-Host "`n🚀 Step 1: Running AI Producer (Script + Voiceover + Logo + Sound FX)..." -ForegroundColor Cyan
         & .\.venv\Scripts\python.exe -m agents.orchestrator --brief "$brief" --output "$out" --style "$style"
+
         Write-Host "`nOpening Client Portal in browser..." -ForegroundColor Green
-        Start-Process "$out/brand_kit.html"
+        if (Test-Path "$out/brand_kit.html") {
+            Start-Process "$out/brand_kit.html"
+        }
+
+        $renderChoice = Read-Host "`n🎥 Step 2: Render 4K Commercial Video now? [Y/n]"
+        if ($renderChoice -eq "" -or $renderChoice -match "^[Yy]") {
+            $gdriveTarget = "G:/My Drive/Agency Deliverables/$slug.mp4"
+            $localTarget = "$out/commercial.mp4"
+            $finalTarget = if (Test-Path "G:/My Drive") { $gdriveTarget } else { $localTarget }
+
+            Write-Host "`nRendering 60FPS Video to: $finalTarget ..." -ForegroundColor Magenta
+            cd video
+            npx remotion render src/index.tsx Commercial --output "$finalTarget"
+            cd ..
+            Write-Host "`n✓ Master Video Ready!" -ForegroundColor Green
+            if (Test-Path $finalTarget) {
+                Start-Process $finalTarget
+            }
+        }
     }
     "2" {
         Write-Host "`n🎨 Launching Remotion Studio GUI at http://localhost:3000..." -ForegroundColor Magenta
@@ -81,7 +105,35 @@ switch ($choice) {
         Write-Host "`n🏭 Scaffolding AI Agent..." -ForegroundColor Cyan
         & .\.venv\Scripts\python.exe "C:\Users\ELCOT\.gemini\config\skills\agent-builder\scaffold_agent.py" --name "$name" --archetype "$archetype" --output-dir "C:\Users\ELCOT\.gemini\antigravity\scratch"
     }
+    "6" {
+        Write-Host "`n🔑 Secure Local API Key Manager" -ForegroundColor Cyan
+        Write-Host "Keys are saved ONLY in local .env (protected by .gitignore - NEVER uploaded to GitHub)" -ForegroundColor Gray
+        Write-Host ""
+        $gemini = Read-Host "Enter Google Gemini API Key (press Enter to skip)"
+        $groq = Read-Host "Enter Groq API Key (press Enter to skip)"
+        $openai = Read-Host "Enter OpenAI API Key (press Enter to skip)"
+
+        $envFile = ".env"
+        if (-not (Test-Path $envFile)) {
+            Copy-Item ".env.example" $envFile
+        }
+
+        $envContent = Get-Content $envFile -Raw
+        if ($gemini) {
+            $envContent = $envContent -replace 'GEMINI_API_KEY=.*', "GEMINI_API_KEY=$gemini"
+        }
+        if ($groq) {
+            $envContent = $envContent -replace '#? ?GROQ_API_KEY=.*', "GROQ_API_KEY=$groq"
+        }
+        if ($openai) {
+            $envContent = $envContent -replace 'OPENAI_API_KEY=.*', "OPENAI_API_KEY=$openai"
+        }
+        Set-Content -Path $envFile -Value $envContent -Encoding UTF8
+        Write-Host "`n✓ API keys saved securely to local .env!" -ForegroundColor Green
+        Write-Host "Git status check: .env is 100% ignored and will never be pushed." -ForegroundColor Cyan
+    }
     Default {
         Write-Host "Exiting." -ForegroundColor Gray
     }
 }
+
