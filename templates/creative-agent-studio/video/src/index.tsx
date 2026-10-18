@@ -56,3 +56,4 @@ export const RemotionVideo: React.FC = () => {
 };
 
 registerRoot(RemotionVideo);
+

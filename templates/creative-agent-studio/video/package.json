@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render",
-    "render:commercial": "remotion render src/index.ts Commercial --output ../assets/outputs/commercial.mp4 --codec h264",
-    "render:product": "remotion render src/index.ts ProductShowcase --output ../assets/outputs/product.mp4",
-    "smoke-test": "remotion render src/index.ts SmokeTest --output ../assets/outputs/smoke_test.mp4"
+    "render:commercial": "remotion render src/index.tsx Commercial --output ../assets/outputs/commercial.mp4 --codec h264",
+    "render:product": "remotion render src/index.tsx ProductShowcase --output ../assets/outputs/product.mp4",
+    "smoke-test": "remotion render src/index.tsx SmokeTest --output ../assets/outputs/smoke_test.mp4"
   },
   "dependencies": {
     "remotion": "^4.0.0",
@@ -30,3 +30,4 @@
     "typescript": "^5.6.0"
   }
 }
+
