@@ -18,14 +18,44 @@ class BRollFetcher:
     """Fetches high-definition, royalty-free 4K/HD video b-roll from Pexels & Pixabay ($0 free tiers)."""
 
     CACHE_DIR = Path("C:/Users/ELCOT/.gemini/antigravity/scratch/creative-agent-studio/assets/broll_cache")
+    VEO_LOCAL_DIR = Path("C:/Users/ELCOT/.gemini/antigravity/scratch/creative-agent-studio/assets/broll")
+    VEO_GDRIVE_DIR = Path("G:/My Drive/Agency Deliverables/veo_broll")
 
     def __init__(self):
         self.pexels_key = os.getenv("PEXELS_API_KEY")
         self.pixabay_key = os.getenv("PIXABAY_API_KEY")
+        self.custom_veo_dir = os.getenv("VEO_BROLL_DIR")
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        self.VEO_LOCAL_DIR.mkdir(parents=True, exist_ok=True)
 
     async def search_clips(self, query: str, count: int = 3) -> List[BRollClip]:
         clips: List[BRollClip] = []
+
+        # 0. Priority: Check Custom / Google Veo 3.1 AI Video Folders
+        scan_paths = []
+        if self.custom_veo_dir and Path(self.custom_veo_dir).exists():
+            scan_paths.append(Path(self.custom_veo_dir))
+        if self.VEO_GDRIVE_DIR.exists():
+            scan_paths.append(self.VEO_GDRIVE_DIR)
+        if self.VEO_LOCAL_DIR.exists():
+            scan_paths.append(self.VEO_LOCAL_DIR)
+
+        for scan_dir in scan_paths:
+            for ext in ("*.mp4", "*.mov", "*.webm"):
+                for video_file in scan_dir.glob(ext):
+                    if len(clips) >= count:
+                        break
+                    clips.append(BRollClip(
+                        id=video_file.stem,
+                        url=str(video_file.resolve()),
+                        local_path=str(video_file.resolve()),
+                        duration_seconds=5.0,
+                        width=1920,
+                        height=1080,
+                        source="veo_ai"
+                    ))
+            if len(clips) >= count:
+                return clips[:count]
 
         # 1. Pexels API (High-quality 4K commercial footage)
         if self.pexels_key and self.pexels_key != "your_pexels_api_key_here":
@@ -92,3 +122,4 @@ class BRollFetcher:
                 return clip.local_path
 
         return clip.url
+

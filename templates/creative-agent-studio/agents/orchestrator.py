@@ -4,6 +4,7 @@ import json
 import asyncio
 from pathlib import Path
 from typing import TypedDict, List, Dict, Any, Optional
+import httpx
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -87,26 +88,52 @@ STYLE_PRESETS = {
     },
 }
 
-async def run_creative_pipeline(brief: str, output_directory: str, style: str = "fintech") -> Dict[str, Any]:
-    out_dir = Path(output_directory)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    video_dir = out_dir / "video_assets"
-    video_dir.mkdir(parents=True, exist_ok=True)
-
-    chosen_style = STYLE_PRESETS.get(style.lower(), STYLE_PRESETS["fintech"])
-
-    console.print(Panel.fit(
-        f"[bold cyan]🎬 Creative Studio AI Orchestrator[/bold cyan]\n"
-        f"[dim]Brief:[/dim] {brief}\n"
-        f"[dim]Aesthetic Style Preset:[/dim] [bold yellow]{style.upper()}[/bold yellow]\n"
-        f"[dim]Output Directory:[/dim] {out_dir.resolve()}",
-        border_style="cyan"
-    ))
-
-    # 1. Script & Visual Scene Planning
-    console.print("[bold yellow]⚡ Phase 1: Directing Script & 3D Scene Architecture...[/bold yellow]")
+async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialScript:
+    """Generates customized commercial script & scenes via Google Gemini if API key is present."""
     brand_slug = "".join([c for c in brief.split()[0] if c.isalnum()]).capitalize() or "Apex"
-    script = CommercialScript(
+
+    # Check for Google Gemini API Key
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key and gemini_key != "your_gemini_api_key_here":
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            prompt = (
+                f"You are an elite creative commercial director. Create a 20-second commercial script and scene plan for:\n"
+                f"Brief: {brief}\n\n"
+                f"Respond with ONLY a valid JSON object matching this structure:\n"
+                f"{{\n"
+                f'  "project_title": "{brand_slug} Commercial",\n'
+                f'  "brand_name": "{brand_slug}",\n'
+                f'  "tagline": "SHORT PUNCHY TAGLINE",\n'
+                f'  "voiceover_script": "Engaging punchy 3-sentence voiceover script for audio narration",\n'
+                f'  "primary_color": "{chosen_style["primary"]}",\n'
+                f'  "secondary_color": "{chosen_style["secondary"]}",\n'
+                f'  "accent_color": "{chosen_style["accent"]}",\n'
+                f'  "scenes": [\n'
+                f'    {{"id": 1, "type": "hero", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.0, "vfx_type": "particles"}},\n'
+                f'    {{"id": 2, "type": "tension", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.5, "vfx_type": "chromatic"}},\n'
+                f'    {{"id": 3, "type": "mockup_3d", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 5.0, "vfx_type": "glow"}},\n'
+                f'    {{"id": 4, "type": "metrics", "headline": "HEADLINE", "subtext": "Subtext", "duration_seconds": 3.5, "vfx_type": "particles"}},\n'
+                f'    {{"id": 5, "type": "cta", "headline": "{brand_slug.upper()}", "subtext": "Subtext", "duration_seconds": 4.0, "vfx_type": "glow"}}\n'
+                f'  ]\n'
+                f"}}"
+            )
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json"}
+            }
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                res = await client.post(url, json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    parsed = json.loads(raw_text)
+                    return CommercialScript(**parsed)
+        except Exception as e:
+            console.print(f"[dim yellow]Notice: Gemini dynamic scriptwriter bypassed: {e}[/dim yellow]")
+
+    # Fallback: High-precision crafted baseline script
+    return CommercialScript(
         project_title=f"{brand_slug} Commercial",
         brand_name=brand_slug,
         tagline=chosen_style["tagline"],
@@ -127,6 +154,27 @@ async def run_creative_pipeline(brief: str, output_directory: str, style: str = 
         secondary_color=chosen_style["secondary"],
         accent_color=chosen_style["accent"]
     )
+
+async def run_creative_pipeline(brief: str, output_directory: str, style: str = "fintech") -> Dict[str, Any]:
+    out_dir = Path(output_directory)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    video_dir = out_dir / "video_assets"
+    video_dir.mkdir(parents=True, exist_ok=True)
+
+    chosen_style = STYLE_PRESETS.get(style.lower(), STYLE_PRESETS["fintech"])
+
+    console.print(Panel.fit(
+        f"[bold cyan]🎬 Creative Studio AI Orchestrator[/bold cyan]\n"
+        f"[dim]Brief:[/dim] {brief}\n"
+        f"[dim]Aesthetic Style Preset:[/dim] [bold yellow]{style.upper()}[/bold yellow]\n"
+        f"[dim]Output Directory:[/dim] {out_dir.resolve()}",
+        border_style="cyan"
+    ))
+
+    # 1. Script & Visual Scene Planning
+    console.print("[bold yellow]⚡ Phase 1: Directing Script & 3D Scene Architecture...[/bold yellow]")
+    script = await generate_script_with_ai(brief, chosen_style)
+    console.print(f"  ✓ Script ready for [bold cyan]{script.brand_name}[/bold cyan] ('{script.tagline}')")
 
     # 2. Neural Audio Voiceover Synthesis + Procedural SFX Library
     console.print("[bold green]🎙️ Phase 2: Synthesizing Neural Voiceover & Sound Effects...[/bold green]")

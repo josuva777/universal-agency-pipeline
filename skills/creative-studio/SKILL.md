@@ -71,6 +71,11 @@ No rubbery morphing or deformed hands. All 3D is mathematically rendered via **R
 - **SVG Filters**: Gradients, inner shadows, and metallic sheen defined purely in code.
 - **Zero Loss Scaling**: Scales infinitely from a 16x16 favicon to an 8K billboard without pixelation.
 
+### 5. ☁️ Google AI Ecosystem (Veo 3.1 + Gemini 3 + 5TB Google Drive)
+- **Google Veo 3.1 AI Video Ingestion**: Drops placed in `G:\My Drive\Agency Deliverables\veo_broll\` or `assets/broll/` are automatically detected and prioritized over generic stock footage.
+- **Gemini 3 / Flash Dynamic Scripting**: When `GEMINI_API_KEY` is present, `orchestrator.py` dynamically writes customized scripts, hooks, and scene architecture.
+- **Zero-Local-Bloat Storage**: Renders and assets export directly to `G:\My Drive\Agency Deliverables\`, preserving laptop internal SSD storage.
+
 ---
 
 ## Project Structure & Commands

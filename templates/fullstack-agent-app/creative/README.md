@@ -7,3 +7,4 @@ This directory holds the client's promotional marketing collateral:
 - `brand_kit.html` — Interactive Client Delivery Portal
 
 Generated automatically via the Creative Studio skill (`create video for [brief]`).
+
