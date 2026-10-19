@@ -19,18 +19,36 @@ class BRollClip(BaseModel):
     source: str
 
 class BRollFetcher:
-    """Fetches high-definition, royalty-free 4K/HD video b-roll from Pexels & Pixabay ($0 free tiers)."""
+    """Fetches high-definition, royalty-free 4K/HD video b-roll from Pexels & Pixabay ($0 free tiers), plus Veo AI."""
 
-    CACHE_DIR = Path("C:/Users/ELCOT/.gemini/antigravity/scratch/creative-agent-studio/assets/broll_cache")
-    VEO_LOCAL_DIR = Path("C:/Users/ELCOT/.gemini/antigravity/scratch/creative-agent-studio/assets/broll")
-    VEO_GDRIVE_DIR = Path("G:/My Drive/Agency Deliverables/veo_broll")
+    @staticmethod
+    def get_agency_drive_path() -> Path:
+        """Dynamically resolves cross-platform Google Drive or agency deliverables path."""
+        env_path = os.getenv("AGENCY_DRIVE_PATH") or os.getenv("GDRIVE_DELIVERY_DIR")
+        if env_path and Path(env_path).exists():
+            return Path(env_path)
+        # Windows default
+        win_path = Path("G:/My Drive/Agency Deliverables")
+        if win_path.exists():
+            return win_path
+        # macOS / Linux default
+        unix_path = Path.home() / "Google Drive" / "Agency Deliverables"
+        if unix_path.exists():
+            return unix_path
+        # Local fallback
+        local_fallback = Path("./agency_deliverables")
+        local_fallback.mkdir(parents=True, exist_ok=True)
+        return local_fallback
 
     def __init__(self):
         self.pexels_key = os.getenv("PEXELS_API_KEY")
         self.pixabay_key = os.getenv("PIXABAY_API_KEY")
         self.custom_veo_dir = os.getenv("VEO_BROLL_DIR")
-        self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        self.VEO_LOCAL_DIR.mkdir(parents=True, exist_ok=True)
+        self.drive_path = self.get_agency_drive_path()
+        self.cache_dir = Path("./assets/broll_cache")
+        self.local_veo_dir = Path("./assets/broll")
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.local_veo_dir.mkdir(parents=True, exist_ok=True)
 
     async def search_clips(self, query: str, count: int = 3) -> List[BRollClip]:
         clips: List[BRollClip] = []
@@ -39,10 +57,11 @@ class BRollFetcher:
         scan_paths = []
         if self.custom_veo_dir and Path(self.custom_veo_dir).exists():
             scan_paths.append(Path(self.custom_veo_dir))
-        if self.VEO_GDRIVE_DIR.exists():
-            scan_paths.append(self.VEO_GDRIVE_DIR)
-        if self.VEO_LOCAL_DIR.exists():
-            scan_paths.append(self.VEO_LOCAL_DIR)
+        veo_gdrive = self.drive_path / "veo_broll"
+        if veo_gdrive.exists():
+            scan_paths.append(veo_gdrive)
+        if self.local_veo_dir.exists():
+            scan_paths.append(self.local_veo_dir)
 
         for scan_dir in scan_paths:
             for ext in ("*.mp4", "*.mov", "*.webm"):
@@ -112,7 +131,7 @@ class BRollFetcher:
 
     async def download_clip(self, clip: BRollClip) -> str:
         """Downloads clip to local cache."""
-        target_file = self.CACHE_DIR / f"{clip.source}_{clip.id}.mp4"
+        target_file = self.cache_dir / f"{clip.source}_{clip.id}.mp4"
         if target_file.exists():
             clip.local_path = str(target_file.resolve())
             return clip.local_path

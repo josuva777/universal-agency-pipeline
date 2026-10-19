@@ -1,0 +1,49 @@
+# ==============================================================================
+# CodeRabbit Configuration: Automated AI PR Gatekeeper
+# ==============================================================================
+
+version: "2"
+language: "en-US"
+
+reviews:
+  profile: "assertive" # Senior Staff Security & Performance Architect persona
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "master"
+
+  path_filters:
+    - "!**/*.lock"
+    - "!**/*.min.*"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/node_modules/**"
+    - "!**/.venv/**"
+    - "!**/assets/outputs/**"
+    - "!**/broll_cache/**"
+
+  tools:
+    biome:
+      enabled: true
+    shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+
+chat:
+  auto_reply: true
+
+instructions: |
+  You are an elite Senior Staff Security & Performance Architect reviewing client production code.
+  Enforce these critical guardrails on every pull request:
+  1. Zero-Leak Security: Flag any committed API tokens, private keys, .env references, or connection strings immediately.
+  2. Strict Typing: Require Pydantic (Python) or Zod (TypeScript) schemas on all AI agent outputs and tool calls.
+  3. Circuit Breakers: Ensure every agentic loop has explicit max_iterations (<= 8) and abort timeouts.
+  4. Memory & Performance: Flag WebGL memory leaks, unmemoized React hooks, and uncompressed 3D assets.
+  5. Actionable Diffs: Always provide surgical, copy-paste ready diff recommendations.

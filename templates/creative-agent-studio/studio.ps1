@@ -59,9 +59,9 @@ switch ($choice) {
 
         $renderChoice = Read-Host "`n🎥 Step 2: Render 4K Commercial Video now? [Y/n]"
         if ($renderChoice -eq "" -or $renderChoice -match "^[Yy]") {
-            $gdriveTarget = "G:/My Drive/Agency Deliverables/$slug.mp4"
-            $localTarget = "$out/commercial.mp4"
-            $finalTarget = if (Test-Path "G:/My Drive") { $gdriveTarget } else { $localTarget }
+            $agencyDrive = if ($env:AGENCY_DRIVE_PATH) { $env:AGENCY_DRIVE_PATH } elseif (Test-Path "G:/My Drive/Agency Deliverables") { "G:/My Drive/Agency Deliverables" } else { "$out" }
+            if (-not (Test-Path $agencyDrive)) { New-Item -ItemType Directory -Path $agencyDrive -Force | Out-Null }
+            $finalTarget = "$agencyDrive/$slug.mp4"
 
             Write-Host "`nRendering 60FPS Video to: $finalTarget ..." -ForegroundColor Magenta
             cd video

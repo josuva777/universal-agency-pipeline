@@ -74,6 +74,23 @@ flowchart TD
 
 ---
 
+## 🔄 The Autonomous "GSD + Ralph Loop" Pipeline
+
+Every feature, agent, and screen goes through an autonomous, self-healing verification loop before reaching production or opening a Pull Request:
+
+```mermaid
+flowchart LR
+    SPEC["1. GSD Spec\n(SPEC.md & PLAN.md)"] --> BUILD["2. Ponytail Build\n(Minimal Senior Diffs\nin Git Worktree)"]
+    BUILD --> BIOME["3. Biome Hook\n(<50ms Format & Lint\n0 Tokens Used)"]
+    BIOME --> TEST{"4. Ralph Loop QA\n(Playwright / Maestro\n+ Promptfoo Evals)"}
+    TEST -- "Console / UI Error" --> BUILD
+    TEST -- "100% Green" --> STRIX{"5. Strix Security\n(Autonomous OWASP\nSandbox Pentest)"}
+    STRIX -- "Vulnerability Found" --> BUILD
+    STRIX -- "Passed" --> PR["6. GitHub PR + CodeRabbit\n-> Vercel / Cloudflare Deploy"]
+```
+
+---
+
 ## 📦 3-in-1 Turnkey Monorepo Architecture
 
 When clients order an AI product, never build disconnected pieces in separate folders. Deliver a unified monorepo:
@@ -131,9 +148,9 @@ To prevent heavy AI models from freezing laptops with 8GB RAM, our built-in hard
 universal-agency-pipeline/
 ├── .agents/                        # Universal workspace template for client projects
 │   ├── mcp_config.json             # Web MCPs (Playwright, Supabase, Vercel, Cloudflare)
-│   ├── mcp_config.mobile.json      # Mobile MCPs (Maestro, Supabase)
-│   ├── hooks.json                  # Sub-50ms Biome auto-formatting hook
-│   └── AGENTS.md                   # Enterprise zero-leak guardrails
+│   ├── mcp_config.mobile.json      # Mobile MCPs (Maestro, Supabase, Expo EAS)
+│   ├── hooks.json                  # Sub-50ms Biome auto-formatting + secret scan hook
+│   └── AGENTS.md                   # Enterprise zero-leak guardrails + 30-msg reset rule
 ├── configs/                        # Ready-to-use configs for every AI agent
 │   ├── antigravity/mcp_config.json
 │   ├── claude-desktop/claude_desktop_config.json
@@ -141,30 +158,34 @@ universal-agency-pipeline/
 │   ├── windsurf/mcp_config.json
 │   └── claude-code/mcp_config.json
 ├── skills/                         # Reusable agent skills
-│   ├── agency-pipeline/SKILL.md    # 4-Phase feature workflow
+│   ├── agency-pipeline/SKILL.md    # GSD Spec Engine (SPEC.md -> PLAN.md) + Ralph Loop
+│   ├── ponytail/SKILL.md           # ⚡ "Lazy Senior Dev" (54%+ output token reduction)
 │   ├── agency-scaffold/SKILL.md    # "scaffold workspace" generator
-│   ├── agent-builder/              # Universal AI Agent Factory & Scaffolder
+│   ├── agent-builder/              # Universal AI Agent Factory & Scaffolder (Hybrid RAG, LangGraph, E2B, Redis Cache)
 │   │   ├── system_scanner.py       # Hardware safety auditor
 │   │   ├── scaffold_agent.py       # 1-command agent generator
 │   │   └── references/             # RAG, Workflow, ReAct, Copilot cards
-│   ├── creative-studio/            # Broadcast Commercial & Brand Studio
+│   ├── creative-studio/            # Broadcast Commercial & Brand Studio (4K Remotion, Three.js, Edge-TTS, EBU R128)
 │   │   └── references/             # Shaders, 3D rigs, EBU R128 mastering
-│   ├── taste-skill/                # 🎨 Anti-Slop Frontend Art Direction (Leon Lin v2)
+│   ├── taste-skill/                # 🎨 Anti-Slop Frontend Art Direction & 3D (R3F, gltfjsx, Spline, Motion Primitives)
 │   │   ├── scripts/                # draw.mjs, inspect.mjs, assets.mjs
+│   │   ├── references/             # 3D, Physics & Mobile Design Guide
 │   │   └── library/                # 247 Curated Award-Winning Blueprints
-│   └── pre-deploy-security/        # Strix & Promptfoo CLI runner
+│   └── pre-deploy-security/        # 🛡️ Strix OWASP Pentest + Promptfoo Evals + CodeRabbit check
 ├── templates/                      # Full Project Starters
-│   ├── fullstack-agent-app/        # Turnkey Monorepo: App + Agent + Creative
+│   ├── fullstack-agent-app/        # Turnkey Web Monorepo: Next.js + Agent + 4K Videos
+│   ├── mobile-agent-app/           # 📱 Turnkey Mobile Monorepo: Expo + Skia + Reanimated 3 + Maestro
 │   ├── creative-agent-studio/      # Complete Remotion Video & Audio Engine
 │   │   ├── start_studio.bat        # 1-Click Desktop Launcher
 │   │   ├── studio.ps1              # Interactive Terminal Dashboard
 │   │   └── agents/                 # Orchestrator, SFX, Logo, GCS, R2
 │   ├── handover-template.md        # Client delivery brief
 │   └── CHANGELOG.md                # KeepAChangelog template
+├── .coderabbit.yaml                # Automated GitHub PR review configuration
 ├── setup.ps1                       # Windows 1-click installer
 ├── setup.sh                        # macOS / Linux 1-click installer
 ├── .gitignore                      # Zero-leak secret filter
-├── AGENTS.md                       # Master rules file for AI agents
+├── AGENTS.md                       # Master rules file for AI agents (Worktrees + 30-msg rule)
 └── README.md                       # Master Documentation
 ```
 

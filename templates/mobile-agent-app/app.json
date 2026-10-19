@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Mobile Agent App",
+    "slug": "mobile-agent-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "mobileagent",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#090b10"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agency.mobileagent"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#090b10"
+      },
+      "package": "com.agency.mobileagent"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

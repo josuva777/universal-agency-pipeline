@@ -93,9 +93,14 @@ class ProductionRAGPipeline:
         
         retrieved_nodes = hybrid_retriever.retrieve(user_query)
         
+        # 3. Precision Reranking via Cohere Rerank-v3 (Eliminates Hallucination)
+        from llama_index.postprocessor.cohere_rerank import CohereRerank
+        reranker = CohereRerank(api_key=os.getenv("COHERE_API_KEY"), top_n=4)
+        final_nodes = reranker.postprocess_nodes(retrieved_nodes, query_str=user_query)
+        
         # Format context with chunk IDs
         context_blocks = []
-        for n in retrieved_nodes:
+        for n in final_nodes:
             cid = n.node.metadata.get("chunk_id", "unknown")
             text = n.node.get_content()
             context_blocks.append(f"[{cid}]\n{text}")
