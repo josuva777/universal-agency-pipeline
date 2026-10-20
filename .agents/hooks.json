@@ -1,15 +1,24 @@
 {
-  "auto-format": {
+  "formatting": {
     "PostToolUse": [
       {
         "matcher": "write_to_file|replace_file_content",
         "hooks": [
           {
             "type": "command",
-            "command": "cmd /c \"npx @biomejs/biome check --write . 2>nul || npx prettier --write . --ignore-unknown 2>nul || echo format-done\"",
+            "command": "cmd /c \"npx @biomejs/biome check --write . 2>nul || npx prettier --write . --ignore-unknown 2>nul || exit 0\"",
             "timeout": 15
           }
         ]
+      }
+    ]
+  },
+  "security": {
+    "PreCommit": [
+      {
+        "type": "command",
+        "command": "python .agents/secret_scan.py",
+        "timeout": 10
       }
     ]
   }

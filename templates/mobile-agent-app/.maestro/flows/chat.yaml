@@ -16,3 +16,4 @@ appId: com.agency.mobileagent
 - tapOn:
     point: "90%,95%" # Tap Send button
 - assertVisible: "Analysis complete"
+

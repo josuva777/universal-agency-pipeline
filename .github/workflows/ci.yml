@@ -1,0 +1,87 @@
+name: CI / Production Verification Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  repo-integrity-and-security:
+    name: 🛡️ Config Integrity & Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv & Dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install --system pyyaml pydantic pytest pytest-asyncio typer rich httpx
+
+      - name: Pre-Commit Secret Scanner Audit
+        run: |
+          python .agents/secret_scan.py .
+
+      - name: Validate All JSON & YAML Configurations
+        run: |
+          pytest tests/test_config_integrity.py
+
+  python-test-suite:
+    name: 🐍 Python Unit & Integration Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies via uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install --system pytest pytest-asyncio pydantic typer rich pyyaml httpx
+
+      - name: Run Full Test Suite
+        run: |
+          pytest tests/ -v
+
+  templates-verification:
+    name: 📦 Full-Stack & Mobile Template Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+          cache-dependency-path: 'templates/fullstack-agent-app/package.json'
+
+      - name: Verify Full-Stack App Structure
+        run: |
+          test -f templates/fullstack-agent-app/app/chat/page.tsx || exit 1
+          test -f templates/fullstack-agent-app/.env.example || exit 1
+          test -f templates/fullstack-agent-app/app/api/chat/route.ts || exit 1
+          echo "✓ All fullstack template routes and environment templates present."
+
+      - name: Verify Mobile App Structure
+        run: |
+          test -f templates/mobile-agent-app/package.json || exit 1
+          test -f templates/mobile-agent-app/.maestro/flows/chat.yaml || exit 1
+          test -f templates/mobile-agent-app/app/(tabs)/chat.tsx || exit 1
+          echo "✓ All mobile template routes and Maestro flows present."

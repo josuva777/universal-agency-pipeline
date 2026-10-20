@@ -2,16 +2,24 @@ import os
 import sys
 import platform
 import ctypes
-from typing import Dict, Any, Literal
-from pydantic import BaseModel
+import shutil
+from typing import Dict, Any, Literal, Optional
+from pydantic import BaseModel, Field
 from rich.console import Console
 from rich.panel import Panel
 
-# Ensure UTF-8 output on Windows
+# Ensure UTF-8 output on Windows safely
 if sys.platform == "win32":
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 console = Console(legacy_windows=False, force_terminal=True)
 
@@ -28,16 +36,59 @@ class MEMORYSTATUSEX(ctypes.Structure):
         ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
     ]
 
-def get_ram_info() -> tuple[float, float]:
-    """Returns (total_ram_gb, avail_ram_gb) with zero dependencies on Windows."""
+def get_ram_info() -> tuple[float, float, str]:
+    """Returns (total_ram_gb, avail_ram_gb, confidence) across platforms."""
     if sys.platform == "win32":
-        stat = MEMORYSTATUSEX()
-        stat.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
-            total_gb = stat.ullTotalPhys / (1024 ** 3)
-            avail_gb = stat.ullAvailPhys / (1024 ** 3)
-            return (round(total_gb, 1), round(avail_gb, 1))
-    return (8.0, 4.0)
+        try:
+            stat = MEMORYSTATUSEX()
+            stat.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+                total_gb = stat.ullTotalPhys / (1024 ** 3)
+                avail_gb = stat.ullAvailPhys / (1024 ** 3)
+                return (round(total_gb, 1), round(avail_gb, 1), "high (Win32 API)")
+        except Exception:
+            pass
+    elif sys.platform == "darwin" or sys.platform.startswith("linux"):
+        try:
+            # Check /proc/meminfo on Linux
+            if os.path.exists("/proc/meminfo"):
+                with open("/proc/meminfo") as f:
+                    mem = {}
+                    for line in f:
+                        parts = line.split(":")
+                        if len(parts) == 2:
+                            mem[parts[0].strip()] = int(parts[1].split()[0])
+                    total_gb = mem.get("MemTotal", 8 * 1024 * 1024) / (1024 * 1024)
+                    avail_gb = mem.get("MemAvailable", mem.get("MemFree", 4 * 1024 * 1024)) / (1024 * 1024)
+                    return (round(total_gb, 1), round(avail_gb, 1), "high (/proc/meminfo)")
+        except Exception:
+            pass
+
+    return (8.0, 4.0, "estimated (heuristic fallback)")
+
+def get_disk_info(path: str = ".") -> tuple[float, float]:
+    """Returns (free_disk_gb, total_disk_gb)."""
+    try:
+        total, used, free = shutil.disk_usage(path)
+        return (round(free / (1024 ** 3), 1), round(total / (1024 ** 3), 1))
+    except Exception:
+        return (20.0, 100.0)
+
+def get_physical_cores() -> tuple[int, int, str]:
+    """Returns (physical_cores, logical_cores, confidence)."""
+    logical = os.cpu_count() or 4
+    if sys.platform == "win32":
+        try:
+            import subprocess
+            out = subprocess.check_output(
+                ["powershell", "-Command", "(Get-CimInstance Win32_Processor).NumberOfCores"],
+                text=True, stderr=subprocess.DEVNULL
+            ).strip()
+            if out and out.isdigit():
+                return (int(out), logical, "high (WMI)")
+        except Exception:
+            pass
+    return (max(1, logical // 2), logical, "estimated (heuristic logical/2)")
 
 class HardwareProfile(BaseModel):
     os_name: str
@@ -46,25 +97,29 @@ class HardwareProfile(BaseModel):
     logical_cores: int
     total_ram_gb: float
     available_ram_gb: float
+    free_disk_gb: float
+    total_disk_gb: float
     has_nvidia_gpu: bool
     gpu_name: str
     hardware_tier: Literal["tier1_light", "tier2_mid", "tier3_heavy"]
+    detection_confidence: str
     recommended_local_model: str
+    recommended_cloud_provider: str
     recommended_tts_engine: str
     recommended_whisper_size: str
-    recommended_cloud_provider: str
+    workload_warning: Optional[str] = None
 
 class SystemScanner:
-    """Scans host system hardware (CPU, RAM, GPU) to automatically determine
-    which models and compute workloads can safely run without freezing or running out of memory.
+    """Scans host system hardware (CPU, RAM, GPU, Disk) with confidence scores,
+    differentiating between Local vs Cloud compute execution profiles.
     """
 
     @classmethod
-    def scan(cls) -> HardwareProfile:
-        total_ram, available_ram = get_ram_info()
+    def scan(cls, target_path: str = ".") -> HardwareProfile:
+        total_ram, available_ram, ram_conf = get_ram_info()
+        physical_cores, logical_cores, cpu_conf = get_physical_cores()
+        free_disk, total_disk = get_disk_info(target_path)
         cpu_name = platform.processor() or "AMD/Intel CPU"
-        logical_cores = os.cpu_count() or 4
-        physical_cores = max(1, logical_cores // 2)
 
         # GPU detection
         has_nvidia = False
@@ -83,62 +138,74 @@ class SystemScanner:
             except Exception:
                 pass
 
-        # Determine Hardware Tier
-        # Tier 1 (Light): <= 12GB RAM, integrated GPU or low VRAM
-        # Tier 2 (Mid): 16GB-24GB RAM, dedicated GPU (4-8GB VRAM)
-        # Tier 3 (Heavy): >= 32GB RAM or dedicated GPU (>= 12GB VRAM)
+        # Workload Warning
+        warning = None
+        if available_ram < 3.5:
+            warning = f"Low available RAM ({available_ram} GB). Heavy local models will cause memory swapping. Cloud API recommended."
+        elif free_disk < 8.0:
+            warning = f"Low disk space ({free_disk} GB free). Remotion 4K video rendering requires at least 8 GB free storage."
+
+        # Tier Classification
         if total_ram <= 12.0 and not has_nvidia:
             tier = "tier1_light"
-            rec_model = "qwen2.5:1.5b or llama3.2:1b (Cloud API recommended for large tasks)"
-            rec_tts = "EdgeTTS (Zero RAM footprint) / Kokoro 82M"
+            rec_local = "qwen2.5:1.5b (Local) or Cloud API (Recommended)"
+            rec_cloud = "Groq (500 tok/s free) or OpenAI gpt-4o-mini"
+            rec_tts = "EdgeTTS (Zero RAM footprint)"
             rec_whisper = "tiny or base"
-            rec_cloud = "Groq (Free fast inference) or OpenAI gpt-4o-mini"
         elif total_ram <= 24.0 or (has_nvidia and total_ram <= 16.0):
             tier = "tier2_mid"
-            rec_model = "qwen2.5:7b-instruct-q4_k_m or llama3.1:8b"
+            rec_local = "qwen2.5:7b-instruct-q4_k_m or llama3.1:8b"
+            rec_cloud = "Hybrid (Local inference with Cloud fallback)"
             rec_tts = "Kokoro ONNX local"
             rec_whisper = "small"
-            rec_cloud = "Hybrid Local + Cloud"
         else:
             tier = "tier3_heavy"
-            rec_model = "qwen2.5:14b or llama3.1:70b-groq"
-            rec_tts = "Kokoro ONNX / Chatterbox"
+            rec_local = "qwen2.5:14b or llama3.1:70b-groq"
+            rec_cloud = "Full local execution with Cloud fallback"
+            rec_tts = "Kokoro ONNX / EdgeTTS"
             rec_whisper = "medium or large-v3"
-            rec_cloud = "Full Local with Cloud Fallback"
 
         return HardwareProfile(
             os_name=f"{platform.system()} {platform.release()}",
             cpu_name=cpu_name,
             physical_cores=physical_cores,
             logical_cores=logical_cores,
-            total_ram_gb=round(total_ram, 1),
-            available_ram_gb=round(available_ram, 1),
+            total_ram_gb=total_ram,
+            available_ram_gb=available_ram,
+            free_disk_gb=free_disk,
+            total_disk_gb=total_disk,
             has_nvidia_gpu=has_nvidia,
             gpu_name=gpu_name,
             hardware_tier=tier,
-            recommended_local_model=rec_model,
+            detection_confidence=f"RAM: {ram_conf}, CPU: {cpu_conf}",
+            recommended_local_model=rec_local,
+            recommended_cloud_provider=rec_cloud,
             recommended_tts_engine=rec_tts,
             recommended_whisper_size=rec_whisper,
-            recommended_cloud_provider=rec_cloud
+            workload_warning=warning
         )
 
     @classmethod
-    def display_report(cls) -> HardwareProfile:
-        profile = cls.scan()
+    def display_report(cls, target_path: str = ".") -> HardwareProfile:
+        profile = cls.scan(target_path)
         tier_color = "yellow" if profile.hardware_tier == "tier1_light" else "cyan" if profile.hardware_tier == "tier2_mid" else "green"
+
+        warning_panel = f"\n[bold red]⚠️ Notice:[/bold red] {profile.workload_warning}\n" if profile.workload_warning else ""
 
         console.print(Panel.fit(
             f"[bold cyan]🔍 System Hardware & Model Capacity Audit[/bold cyan]\n\n"
             f"• [bold]OS:[/bold] {profile.os_name}\n"
             f"• [bold]CPU:[/bold] {profile.cpu_name} ({profile.physical_cores} Cores / {profile.logical_cores} Threads)\n"
-            f"• [bold]RAM:[/bold] {profile.total_ram_gb} GB Total ({profile.available_ram_gb} GB Available)\n"
+            f"• [bold]RAM:[/bold] {profile.total_ram_gb} GB Total ({profile.available_ram_gb} GB Available at scan time)\n"
+            f"• [bold]Disk Storage:[/bold] {profile.free_disk_gb} GB Free / {profile.total_disk_gb} GB Total\n"
             f"• [bold]GPU:[/bold] {profile.gpu_name} (NVIDIA CUDA: {profile.has_nvidia_gpu})\n"
-            f"• [bold]Profile Tier:[/bold] [bold {tier_color}]{profile.hardware_tier.upper()}[/bold {tier_color}]\n\n"
-            f"[bold green]Optimized Recommendations (Zero Freeze Guarantee):[/bold green]\n"
-            f"  - Local LLM: [cyan]{profile.recommended_local_model}[/cyan]\n"
-            f"  - Cloud LLM: [cyan]{profile.recommended_cloud_provider}[/cyan]\n"
+            f"• [bold]Confidence:[/bold] {profile.detection_confidence}\n"
+            f"• [bold]Profile Tier:[/bold] [bold {tier_color}]{profile.hardware_tier.upper()}[/bold {tier_color}]{warning_panel}\n"
+            f"[bold green]Workload Execution Recommendations:[/bold green]\n"
+            f"  - Local Models: [cyan]{profile.recommended_local_model}[/cyan]\n"
+            f"  - Cloud APIs: [cyan]{profile.recommended_cloud_provider}[/cyan]\n"
             f"  - Neural Voice: [cyan]{profile.recommended_tts_engine}[/cyan]\n"
-            f"  - Whisper Subtitles: [cyan]{profile.recommended_whisper_size}[/cyan]",
+            f"  - Subtitles Engine: [cyan]{profile.recommended_whisper_size}[/cyan]",
             border_style="cyan"
         ))
         return profile

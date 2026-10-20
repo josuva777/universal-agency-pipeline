@@ -47,3 +47,4 @@ instructions: |
   3. Circuit Breakers: Ensure every agentic loop has explicit max_iterations (<= 8) and abort timeouts.
   4. Memory & Performance: Flag WebGL memory leaks, unmemoized React hooks, and uncompressed 3D assets.
   5. Actionable Diffs: Always provide surgical, copy-paste ready diff recommendations.
+

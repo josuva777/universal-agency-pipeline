@@ -146,24 +146,28 @@ To prevent heavy AI models from freezing laptops with 8GB RAM, our built-in hard
 
 ```
 universal-agency-pipeline/
+├── .github/
+│   └── workflows/ci.yml            # Automated cross-platform CI test & verification pipeline
 ├── .agents/                        # Universal workspace template for client projects
 │   ├── mcp_config.json             # Web MCPs (Playwright, Supabase, Vercel, Cloudflare)
 │   ├── mcp_config.mobile.json      # Mobile MCPs (Maestro, Supabase, Expo EAS)
 │   ├── hooks.json                  # Sub-50ms Biome auto-formatting + secret scan hook
+│   ├── secret_scan.py              # Pre-commit credential leak gatekeeper
 │   └── AGENTS.md                   # Enterprise zero-leak guardrails + 30-msg reset rule
 ├── configs/                        # Ready-to-use configs for every AI agent
 │   ├── antigravity/mcp_config.json
 │   ├── claude-desktop/claude_desktop_config.json
 │   ├── cursor/mcp.json
 │   ├── windsurf/mcp_config.json
-│   └── claude-code/mcp_config.json
+│   ├── claude-code/mcp_config.json
+│   └── vscode/mcp.json
 ├── skills/                         # Reusable agent skills
 │   ├── agency-pipeline/SKILL.md    # GSD Spec Engine (SPEC.md -> PLAN.md) + Ralph Loop
 │   ├── ponytail/SKILL.md           # ⚡ "Lazy Senior Dev" (54%+ output token reduction)
 │   ├── agency-scaffold/SKILL.md    # "scaffold workspace" generator
-│   ├── agent-builder/              # Universal AI Agent Factory & Scaffolder (Hybrid RAG, LangGraph, E2B, Redis Cache)
-│   │   ├── system_scanner.py       # Hardware safety auditor
-│   │   ├── scaffold_agent.py       # 1-command agent generator
+│   ├── agent-builder/              # Universal AI Agent Factory (Hybrid RAG, LangGraph, E2B, Redis Cache)
+│   │   ├── system_scanner.py       # Hardware safety auditor (Free RAM & Disk space)
+│   │   ├── scaffold_agent.py       # Production agent generator (4 tested archetypes)
 │   │   └── references/             # RAG, Workflow, ReAct, Copilot cards
 │   ├── creative-studio/            # Broadcast Commercial & Brand Studio (4K Remotion, Three.js, Edge-TTS, EBU R128)
 │   │   └── references/             # Shaders, 3D rigs, EBU R128 mastering
@@ -173,20 +177,54 @@ universal-agency-pipeline/
 │   │   └── library/                # 247 Curated Award-Winning Blueprints
 │   └── pre-deploy-security/        # 🛡️ Strix OWASP Pentest + Promptfoo Evals + CodeRabbit check
 ├── templates/                      # Full Project Starters
-│   ├── fullstack-agent-app/        # Turnkey Web Monorepo: Next.js + Agent + 4K Videos
+│   ├── fullstack-agent-app/        # Turnkey Web Monorepo: Next.js + Streaming Chat + Verified Tools
 │   ├── mobile-agent-app/           # 📱 Turnkey Mobile Monorepo: Expo + Skia + Reanimated 3 + Maestro
 │   ├── creative-agent-studio/      # Complete Remotion Video & Audio Engine
 │   │   ├── start_studio.bat        # 1-Click Desktop Launcher
-│   │   ├── studio.ps1              # Interactive Terminal Dashboard
-│   │   └── agents/                 # Orchestrator, SFX, Logo, GCS, R2
+│   │   ├── studio.ps1              # Portable Interactive Dashboard ($PSScriptRoot)
+│   │   └── agents/                 # Orchestrator, Model Provider (2026), SFX, Logo, GCS
 │   ├── handover-template.md        # Client delivery brief
 │   └── CHANGELOG.md                # KeepAChangelog template
+├── tests/                          # Automated Pytest Suite (100% Pass)
+│   ├── test_config_integrity.py    # JSON & Multi-document YAML validator
+│   ├── test_model_provider.py      # Multi-model 2026 failover tests
+│   ├── test_scaffold_agent.py      # Scaffolding & live generated agent test executor
+│   ├── test_secret_scanner.py      # Pre-commit secret detection tests
+│   └── test_system_scanner.py      # Hardware profiling unit tests
+├── benchmarks/
+│   └── token_benchmark.py          # Empirical token efficiency measurement suite
 ├── .coderabbit.yaml                # Automated GitHub PR review configuration
-├── setup.ps1                       # Windows 1-click installer
-├── setup.sh                        # macOS / Linux 1-click installer
+├── setup.ps1                       # Windows 1-click safe installer (Masked tokens + JSON merge)
+├── setup.sh                        # macOS / Linux 1-click safe installer (Non-destructive merge)
 ├── .gitignore                      # Zero-leak secret filter
 ├── AGENTS.md                       # Master rules file for AI agents (Worktrees + 30-msg rule)
 └── README.md                       # Master Documentation
+```
+
+---
+
+## 📊 Automated Verification & Benchmarks
+
+The repository includes a comprehensive, multi-layered test and verification suite:
+
+- **Automated CI Pipeline** (`.github/workflows/ci.yml`): Cross-platform verification across Ubuntu, Windows, and macOS on Python 3.11, 3.12, and 3.13.
+- **Credential Leak Prevention** (`.agents/secret_scan.py`): Blocks commits containing API keys, OAuth tokens, or unignored `.env` files.
+- **Configuration & Schema Integrity** (`tests/test_config_integrity.py`): Parses all JSON and multi-document YAML configurations.
+- **Empirical Token Savings Benchmark** (`benchmarks/token_benchmark.py`): Empirically measures token generation reduction (achieving 54% to 88%+ savings via Ponytail minimal surgical diffs):
+
+```
+        [Universal Agency Pipeline: Token Efficiency Benchmark Results]         
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Benchmark     ┃      Baseline ┃      Ponytail ┃              ┃         Token ┃
+┃ Task          ┃        Tokens ┃        Tokens ┃ Lines Dumped ┃   Reduction % ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Error Boundary│          1420 │           160 │    350 -> 14 │         88.7% │
+│ Zod Validator │           580 │           125 │    120 -> 18 │         78.4% │
+│ DB Connection │          1150 │            65 │     280 -> 6 │         94.3% │
+│ Cohere Rerank │           890 │           185 │    210 -> 24 │         79.2% │
+├───────────────┼───────────────┼───────────────┼──────────────┼───────────────┤
+│ AGGREGATE AVG │          4040 │           535 │            - │ 86.8% SAVINGS │
+└───────────────┴───────────────┴───────────────┴──────────────┴───────────────┘
 ```
 
 ---

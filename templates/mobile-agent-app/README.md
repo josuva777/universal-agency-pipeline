@@ -42,3 +42,4 @@ The test validates:
 - **Physics**: `react-native-reanimated` v3 (UI-thread animations)
 - **Haptics**: `expo-haptics`
 - **Testing**: Maestro E2E
+

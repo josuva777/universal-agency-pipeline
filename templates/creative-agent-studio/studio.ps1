@@ -1,9 +1,32 @@
 <#
 .SYNOPSIS
-    Interactive Launcher for Creative Studio & Universal Agent Factory
+    Portable Interactive Launcher for Creative Studio & Universal Agent Factory
 #>
 
 Clear-Host
+$scriptDir = $PSScriptRoot
+
+# Dynamically resolve Python runtime
+$pythonBin = if (Test-Path "$scriptDir\.venv\Scripts\python.exe") {
+    "$scriptDir\.venv\Scripts\python.exe"
+} elseif (Get-Command uv -ErrorAction SilentlyContinue) {
+    "uv run python"
+} elseif (Get-Command python -ErrorAction SilentlyContinue) {
+    "python"
+} else {
+    "python3"
+}
+
+# Dynamically resolve Agent Scaffolder script
+$repoRoot = (Resolve-Path "$scriptDir\..\..").Path
+$scaffolderScript = if (Test-Path "$repoRoot\skills\agent-builder\scaffold_agent.py") {
+    "$repoRoot\skills\agent-builder\scaffold_agent.py"
+} elseif (Test-Path "$env:USERPROFILE\.gemini\config\skills\agent-builder\scaffold_agent.py") {
+    "$env:USERPROFILE\.gemini\config\skills\agent-builder\scaffold_agent.py"
+} else {
+    "skills\agent-builder\scaffold_agent.py"
+}
+
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host "  🎬 CREATIVE PRODUCTION STUDIO & AI AGENT FACTORY LAUNCHER      " -ForegroundColor Yellow
 Write-Host "=================================================================" -ForegroundColor Cyan
@@ -47,14 +70,17 @@ switch ($choice) {
         }
         $slug = ($brief -replace '[^a-zA-Z0-9]', '_').ToLower()
         if (-not $slug) { $slug = "campaign_run" }
-        $out = "./assets/outputs/$slug"
+        $out = "$scriptDir/assets/outputs/$slug"
 
         Write-Host "`n🚀 Step 1: Running AI Producer (Script + Voiceover + Logo + Sound FX)..." -ForegroundColor Cyan
-        & .\.venv\Scripts\python.exe -m agents.orchestrator --brief "$brief" --output "$out" --style "$style"
-
-        Write-Host "`nOpening Client Portal in browser..." -ForegroundColor Green
-        if (Test-Path "$out/brand_kit.html") {
-            Start-Process "$out/brand_kit.html"
+        & $pythonBin -m agents.orchestrator --brief "$brief" --output "$out" --style "$style"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Error: AI Producer encountered an error (Exit code $LASTEXITCODE)." -ForegroundColor Red
+        } else {
+            Write-Host "`nOpening Client Portal in browser..." -ForegroundColor Green
+            if (Test-Path "$out/brand_kit.html") {
+                Start-Process "$out/brand_kit.html"
+            }
         }
 
         $renderChoice = Read-Host "`n🎥 Step 2: Render 4K Commercial Video now? [Y/n]"
@@ -64,27 +90,33 @@ switch ($choice) {
             $finalTarget = "$agencyDrive/$slug.mp4"
 
             Write-Host "`nRendering 60FPS Video to: $finalTarget ..." -ForegroundColor Magenta
-            cd video
+            Push-Location "$scriptDir\video"
             npx remotion render src/index.tsx Commercial --output "$finalTarget"
-            cd ..
-            Write-Host "`n✓ Master Video Ready!" -ForegroundColor Green
-            if (Test-Path $finalTarget) {
+            $renderExit = $LASTEXITCODE
+            Pop-Location
+
+            if ($renderExit -eq 0 -and (Test-Path $finalTarget)) {
+                Write-Host "`n✓ Master Video Ready: $finalTarget" -ForegroundColor Green
                 Start-Process $finalTarget
+            } else {
+                Write-Host "`n❌ Error rendering video (Exit code $renderExit)." -ForegroundColor Red
             }
         }
     }
     "2" {
         Write-Host "`n🎨 Launching Remotion Studio GUI at http://localhost:3000..." -ForegroundColor Magenta
-        cd video
+        Push-Location "$scriptDir\video"
         npm run dev
+        Pop-Location
     }
     "3" {
         Write-Host "`n🎥 Rendering Master Video..." -ForegroundColor Cyan
-        cd video
+        Push-Location "$scriptDir\video"
         npm run render:commercial
+        Pop-Location
     }
     "4" {
-        $latestPortal = Get-ChildItem -Recurse -Filter "brand_kit.html" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        $latestPortal = Get-ChildItem -Path "$scriptDir" -Recurse -Filter "brand_kit.html" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
         if ($latestPortal) {
             Write-Host "`nOpening $($latestPortal.FullName)..." -ForegroundColor Green
             Start-Process $latestPortal.FullName
@@ -102,8 +134,14 @@ switch ($choice) {
             "4" { "copilot" }
             Default { "rag" }
         }
-        Write-Host "`n🏭 Scaffolding AI Agent..." -ForegroundColor Cyan
-        & .\.venv\Scripts\python.exe "C:\Users\ELCOT\.gemini\config\skills\agent-builder\scaffold_agent.py" --name "$name" --archetype "$archetype" --output-dir "C:\Users\ELCOT\.gemini\antigravity\scratch"
+        $outputDir = if ($env:AGENCY_WORKSPACE_PATH) { $env:AGENCY_WORKSPACE_PATH } else { "$scriptDir/agents_output" }
+        Write-Host "`n🏭 Scaffolding AI Agent to: $outputDir..." -ForegroundColor Cyan
+        & $pythonBin "$scaffolderScript" --name "$name" --archetype "$archetype" --output-dir "$outputDir"
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "`n✓ Agent scaffolded successfully in: $outputDir" -ForegroundColor Green
+        } else {
+            Write-Host "`n❌ Error scaffolding agent (Exit code $LASTEXITCODE)." -ForegroundColor Red
+        }
     }
     "6" {
         Write-Host "`n🔑 Secure Local API Key Manager" -ForegroundColor Cyan
@@ -113,9 +151,9 @@ switch ($choice) {
         $groq = Read-Host "Enter Groq API Key (press Enter to skip)"
         $openai = Read-Host "Enter OpenAI API Key (press Enter to skip)"
 
-        $envFile = ".env"
+        $envFile = "$scriptDir\.env"
         if (-not (Test-Path $envFile)) {
-            Copy-Item ".env.example" $envFile
+            Copy-Item "$scriptDir\.env.example" $envFile
         }
 
         $envContent = Get-Content $envFile -Raw
@@ -136,4 +174,3 @@ switch ($choice) {
         Write-Host "Exiting." -ForegroundColor Gray
     }
 }
-

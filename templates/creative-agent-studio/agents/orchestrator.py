@@ -24,12 +24,20 @@ from agents.broll_fetcher import BRollFetcher, BRollClip
 from agents.logo_generator import LogoGenerator, BrandPalette
 from agents.sfx_generator import ProceduralSFXGenerator
 from agents.brand_kit_exporter import BrandKitExporter
+from agents.model_provider import CentralizedModelProvider
 
-# Ensure UTF-8 output on Windows
+# Ensure UTF-8 output on Windows safely
 if sys.platform == "win32":
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 console = Console(legacy_windows=False, force_terminal=True)
 
@@ -94,7 +102,7 @@ STYLE_PRESETS = {
 }
 
 async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialScript:
-    """Generates customized commercial script & scenes with automatic multi-model failover (Gemini -> Groq -> OpenAI -> Offline Engine)."""
+    """Generates customized commercial script & scenes with automatic multi-model failover."""
     brand_slug = "".join([c for c in brief.split()[0] if c.isalnum()]).capitalize() or "Apex"
 
     prompt = (
@@ -119,78 +127,19 @@ async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialS
         f"}}"
     )
 
-    # 1. Primary: Google Gemini (Free Tier)
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key and gemini_key != "your_gemini_api_key_here":
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"responseMimeType": "application/json"}
-            }
-            async with httpx.AsyncClient(timeout=12.0) as client:
-                res = await client.post(url, json=payload)
-                if res.status_code == 200:
-                    data = res.json()
-                    raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-                    parsed = json.loads(raw_text)
-                    console.print("[dim green]✓ Script generated via Google Gemini[/dim green]")
-                    return CommercialScript(**parsed)
-                else:
-                    console.print(f"[dim yellow]Gemini returned status {res.status_code}, falling back...[/dim yellow]")
-        except Exception as e:
-            console.print(f"[dim yellow]Notice: Gemini bypassed: {e}, attempting fallback...[/dim yellow]")
+    # Multi-model provider execution with centralized 2026 failover
+    provider = CentralizedModelProvider()
+    parsed_json, source = await provider.generate_json(prompt)
 
-    # 2. Secondary: Groq Llama 3.3 70B (100% Free Tier, 500 tokens/sec)
-    groq_key = os.getenv("GROQ_API_KEY")
-    if groq_key and groq_key != "your_groq_api_key_here":
+    if parsed_json:
         try:
-            url = "https://api.groq.com/openai/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {groq_key}"}
-            payload = {
-                "model": "llama-3.3-70b-versatile",
-                "messages": [
-                    {"role": "system", "content": "You are an elite creative director. Respond with pure JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                "response_format": {"type": "json_object"}
-            }
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.post(url, headers=headers, json=payload)
-                if res.status_code == 200:
-                    raw_text = res.json()["choices"][0]["message"]["content"]
-                    parsed = json.loads(raw_text)
-                    console.print("[dim green]✓ Script generated via Groq (Llama 3.3 70B)[/dim green]")
-                    return CommercialScript(**parsed)
+            console.print(f"[dim green]✓ Commercial script generated via {source}[/dim green]")
+            return CommercialScript(**parsed_json)
         except Exception as e:
-            console.print(f"[dim yellow]Notice: Groq bypassed: {e}, attempting next fallback...[/dim yellow]")
+            console.print(f"[dim yellow]Notice: Script schema validation failed ({e}), using baseline...[/dim yellow]")
 
-    # 3. Tertiary: OpenAI (gpt-4o-mini)
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if openai_key and openai_key != "your_openai_api_key_here":
-        try:
-            url = "https://api.openai.com/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {openai_key}"}
-            payload = {
-                "model": "gpt-4o-mini",
-                "messages": [
-                    {"role": "system", "content": "You are an elite creative director. Respond with pure JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                "response_format": {"type": "json_object"}
-            }
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.post(url, headers=headers, json=payload)
-                if res.status_code == 200:
-                    raw_text = res.json()["choices"][0]["message"]["content"]
-                    parsed = json.loads(raw_text)
-                    console.print("[dim green]✓ Script generated via OpenAI (GPT-4o-mini)[/dim green]")
-                    return CommercialScript(**parsed)
-        except Exception as e:
-            console.print(f"[dim yellow]Notice: OpenAI bypassed: {e}[/dim yellow]")
-
-    # 4. Final: Deterministic Built-in Offline Engine (100% Guaranteed Success, Zero Network Required)
-    console.print("[dim cyan]✓ Using Deterministic Master Baseline Script[/dim cyan]")
+    # Deterministic Truth-in-Marketing Master Baseline Script
+    console.print("[dim cyan]✓ Using Deterministic Master Baseline Script (Truth-in-Marketing Certified)[/dim cyan]")
     return CommercialScript(
         project_title=f"{brand_slug} Commercial",
         brand_name=brand_slug,
@@ -198,15 +147,15 @@ async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialS
         voiceover_script=(
             f"The future isn't coming. It's already here. "
             f"Meet {brand_slug}. Engineered from the ground up for breakthrough performance, "
-            f"uncompromising precision, and absolute speed. "
+            f"uncompromising precision, and verified reliability. "
             f"Step into the next era today."
         ),
         scenes=[
-            ScenePlan(id=1, type="hero", headline="THE NEXT ERA", subtext="Speed Without Compromise", duration_seconds=3.0, vfx_type="particles"),
-            ScenePlan(id=2, type="tension", headline="RETHINK EVERYTHING", subtext="Legacy tools hold you back", duration_seconds=3.5, vfx_type="chromatic"),
+            ScenePlan(id=1, type="hero", headline="THE NEXT ERA", subtext="Precision Engineered", duration_seconds=3.0, vfx_type="particles"),
+            ScenePlan(id=2, type="tension", headline="RETHINK EVERYTHING", subtext="Legacy workflows hold you back", duration_seconds=3.5, vfx_type="chromatic"),
             ScenePlan(id=3, type="mockup_3d", headline="ENGINEERED PRECISION", subtext="3D Architecture at scale", duration_seconds=5.0, vfx_type="glow"),
-            ScenePlan(id=4, type="metrics", headline="+400% FASTER", subtext="Validated by industry benchmarks", duration_seconds=3.5, vfx_type="particles"),
-            ScenePlan(id=5, type="cta", headline=brand_slug.upper(), subtext="Start Free Today", duration_seconds=4.0, vfx_type="glow"),
+            ScenePlan(id=4, type="metrics", headline="PROVEN IMPACT", subtext="[Insert verified client benchmark or metric]", duration_seconds=3.5, vfx_type="particles"),
+            ScenePlan(id=5, type="cta", headline=brand_slug.upper(), subtext="Deploy with Confidence", duration_seconds=4.0, vfx_type="glow"),
         ],
         primary_color=chosen_style["primary"],
         secondary_color=chosen_style["secondary"],

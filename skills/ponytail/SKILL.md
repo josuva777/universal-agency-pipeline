@@ -64,3 +64,4 @@ Context windows degrade in precision and bloat in token cost over long sessions.
 | **Generation Latency** | 12.4s | 2.8s | **4.4x Faster** |
 | **Truncation / Timeout Risk** | High | Near Zero | **100% Reliable** |
 | **API Cost per Feature** | $0.08 | $0.02 | **75% Cheaper** |
+
