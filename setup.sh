@@ -32,6 +32,14 @@ else
     echo " -> GITHUB_TOKEN detected in environment."
 fi
 
+DRY_RUN=false
+for arg in "$@"; do
+    if [ "$arg" == "--dry-run" ]; then
+        DRY_RUN=true
+        echo " -> Running in DRY-RUN mode. No files will be modified."
+    fi
+done
+
 # 5. Non-Destructive Config Merger
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -44,6 +52,12 @@ merge_mcp_config() {
 
     local dest_dir
     dest_dir="$(dirname "$dest")"
+
+    if [ "$DRY_RUN" = true ]; then
+        echo " [DRY-RUN] Would process $client config: $src -> $dest"
+        return 0
+    fi
+
     mkdir -p "$dest_dir"
 
     if [ ! -f "$dest" ]; then
@@ -54,9 +68,9 @@ merge_mcp_config() {
         timestamp="$(date +%Y%m%d_%H%M%S)"
         cp "$dest" "${dest}.bak_${timestamp}"
         
-        # Merge if python is available, otherwise copy safely
+        # Merge if python is available, otherwise preserve user file
         if command -v python3 &> /dev/null; then
-            python3 -c "
+            if python3 -c "
 import json, sys
 try:
     with open('$src') as f: s = json.load(f)
@@ -68,9 +82,15 @@ try:
     with open('$dest', 'w') as f: json.dump(d, f, indent=2)
 except Exception as e:
     sys.exit(1)
-" && echo " -> $client: Merged new MCP servers safely (Backup: ${dest}.bak_${timestamp})!" || cp "$src" "$dest"
+"; then
+                echo " -> $client: Merged new MCP servers safely (Backup: ${dest}.bak_${timestamp})!"
+            else
+                echo " [ERROR] -> $client: Failed to merge JSON safely. Leaving original $dest untouched. Backup preserved at ${dest}.bak_${timestamp}."
+                return 1
+            fi
         else
-            cp "$src" "$dest"
+            echo " [WARNING] -> $client: Python3 not found for JSON merge. Leaving existing $dest untouched to prevent data loss."
+            return 1
         fi
     fi
 }
@@ -78,10 +98,19 @@ except Exception as e:
 echo "[5/5] Safely configuring AI Clients..."
 
 # Antigravity
-mkdir -p "$HOME/.gemini/config/skills"
-merge_mcp_config "$SCRIPT_DIR/configs/antigravity/mcp_config.json" "$HOME/.gemini/config/mcp_config.json" "Antigravity"
-cp "$SCRIPT_DIR/AGENTS.md" "$HOME/.gemini/config/AGENTS.md"
-cp -r "$SCRIPT_DIR/skills/"* "$HOME/.gemini/config/skills/"
+if [ "$DRY_RUN" = true ]; then
+    echo " [DRY-RUN] Would configure Antigravity, AGENTS.md, and skills"
+else
+    mkdir -p "$HOME/.gemini/config/skills"
+    merge_mcp_config "$SCRIPT_DIR/configs/antigravity/mcp_config.json" "$HOME/.gemini/config/mcp_config.json" "Antigravity"
+    
+    # Non-destructive AGENTS.md backup before copying
+    if [ -f "$HOME/.gemini/config/AGENTS.md" ]; then
+        cp "$HOME/.gemini/config/AGENTS.md" "$HOME/.gemini/config/AGENTS.md.bak_$(date +%Y%m%d_%H%M%S)"
+    fi
+    cp "$SCRIPT_DIR/AGENTS.md" "$HOME/.gemini/config/AGENTS.md"
+    cp -r "$SCRIPT_DIR/skills/"* "$HOME/.gemini/config/skills/"
+fi
 
 # Claude Desktop (macOS)
 if [ -d "$HOME/Library/Application Support/Claude" ]; then

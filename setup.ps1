@@ -1,3 +1,8 @@
+param(
+    [switch]$DryRun,
+    [switch]$Force
+)
+
 # Universal Agency Pipeline - Enterprise Auto-Setup Script (Windows PowerShell)
 # Installs Python 3.13 via uv, MemPalace, Headroom, and safely merges MCP configs across all AI agents.
 
@@ -5,26 +10,41 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "   Universal Agency Pipeline - Enterprise Multi-Agent Setup" -ForegroundColor Yellow
+if ($DryRun) {
+    Write-Host "   [DRY-RUN MODE ACTIVATED: No files will be modified]   " -ForegroundColor Magenta
+}
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 1. Check or install uv package manager
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-    Write-Host "[1/5] Installing uv package manager..." -ForegroundColor Yellow
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    $env:Path = "$env:USERPROFILE\.local\bin;$env:USERPROFILE\.cargo\bin;" + $env:Path
+    if ($DryRun) {
+        Write-Host " [DRY-RUN] Would install uv package manager" -ForegroundColor Cyan
+    } else {
+        Write-Host "[1/5] Installing uv package manager..." -ForegroundColor Yellow
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        $env:Path = "$env:USERPROFILE\.local\bin;$env:USERPROFILE\.cargo\bin;" + $env:Path
+    }
 } else {
     Write-Host "[1/5] uv package manager detected." -ForegroundColor Green
 }
 
 # 2. Install isolated Python 3.13 runtime via uv
-Write-Host "[2/5] Installing isolated Python 3.13 runtime via uv..." -ForegroundColor Yellow
-uv python install 3.13
+if ($DryRun) {
+    Write-Host " [DRY-RUN] Would verify/install Python 3.13 via uv" -ForegroundColor Cyan
+} else {
+    Write-Host "[2/5] Installing isolated Python 3.13 runtime via uv..." -ForegroundColor Yellow
+    uv python install 3.13
+}
 
 # 3. Install MemPalace & Headroom MCP tools
-Write-Host "[3/5] Installing MemPalace & Headroom AI memory & token compressor..." -ForegroundColor Yellow
-uv tool install mempalace --upgrade
-uv tool install --python 3.13 "headroom-ai[mcp]" --upgrade
+if ($DryRun) {
+    Write-Host " [DRY-RUN] Would verify/install MemPalace & Headroom AI MCP tools" -ForegroundColor Cyan
+} else {
+    Write-Host "[3/5] Installing MemPalace & Headroom AI memory & token compressor..." -ForegroundColor Yellow
+    uv tool install mempalace --upgrade
+    uv tool install --python 3.13 "headroom-ai[mcp]" --upgrade
+}
 
 # 4. Optional GitHub Token Configuration (Masked & Non-Exposed)
 $existingToken = [System.Environment]::GetEnvironmentVariable("GITHUB_TOKEN", "User")
@@ -44,10 +64,10 @@ if ([string]::IsNullOrWhiteSpace($existingToken)) {
             [System.Environment]::SetEnvironmentVariable("GITHUB_TOKEN", $token, "User")
             [System.Environment]::SetEnvironmentVariable("GITHUB_PERSONAL_ACCESS_TOKEN", $token, "User")
             $env:GITHUB_TOKEN = $token
-            Write-Host "✓ GITHUB_TOKEN configured securely in User environment." -ForegroundColor Green
+            Write-Host "[OK] GITHUB_TOKEN configured securely in User environment." -ForegroundColor Green
         }
     } else {
-        Write-Host "✓ Skipping GitHub token setup (can be configured later)." -ForegroundColor Gray
+        Write-Host "[OK] Skipping GitHub token setup (can be configured later)." -ForegroundColor Gray
     }
 } else {
     Write-Host "[4/5] GITHUB_TOKEN already configured." -ForegroundColor Green
@@ -63,6 +83,11 @@ function Merge-McpConfig {
 
     if (-not (Test-Path $SourceFile)) { return }
 
+    if ($DryRun) {
+        Write-Host " [DRY-RUN] Would merge $ClientName MCP configuration: $SourceFile -> $DestFile" -ForegroundColor Cyan
+        return
+    }
+
     $destDir = Split-Path -Parent $DestFile
     if (-not (Test-Path $destDir)) {
         New-Item -ItemType Directory -Path $destDir -Force | Out-Null
@@ -71,7 +96,7 @@ function Merge-McpConfig {
     if (-not (Test-Path $DestFile)) {
         # Brand new installation
         Copy-Item $SourceFile $DestFile -Force
-        Write-Host " -> $ClientName: Installed fresh configuration!" -ForegroundColor Green
+        Write-Host " -> ${ClientName}: Installed fresh configuration!" -ForegroundColor Green
         return
     }
 
@@ -101,9 +126,9 @@ function Merge-McpConfig {
         }
 
         $destContent | ConvertTo-Json -Depth 10 | Set-Content $DestFile -Encoding UTF8
-        Write-Host " -> $ClientName: Merged $addedCount new MCP servers safely (Backup: $backupPath)!" -ForegroundColor Green
+        Write-Host " -> ${ClientName}: Merged $addedCount new MCP servers safely (Backup: $backupPath)!" -ForegroundColor Green
     } catch {
-        Write-Host " -> $ClientName: Warning: Failed to merge JSON ($($_)). Preserving existing configuration." -ForegroundColor Yellow
+        Write-Host " -> ${ClientName}: Warning: Failed to merge JSON ($($_)). Preserving existing configuration." -ForegroundColor Yellow
     }
 }
 
@@ -113,10 +138,21 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # 1. Antigravity
 $antigravityDir = "$env:USERPROFILE\.gemini\config"
-Merge-McpConfig "$scriptDir\configs\antigravity\mcp_config.json" "$antigravityDir\mcp_config.json" "Antigravity"
-Copy-Item "$scriptDir\AGENTS.md" "$antigravityDir\AGENTS.md" -Force
-if (-not (Test-Path "$antigravityDir\skills")) { New-Item -ItemType Directory -Path "$antigravityDir\skills" -Force | Out-Null }
-Copy-Item "$scriptDir\skills\*" "$antigravityDir\skills\" -Recurse -Force
+if ($DryRun) {
+    Write-Host " [DRY-RUN] Would safely configure Antigravity, AGENTS.md, and skills" -ForegroundColor Cyan
+} else {
+    Merge-McpConfig "$scriptDir\configs\antigravity\mcp_config.json" "$antigravityDir\mcp_config.json" "Antigravity"
+    
+    # Safe AGENTS.md backup before copying
+    if (Test-Path "$antigravityDir\AGENTS.md") {
+        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        Copy-Item "$antigravityDir\AGENTS.md" "$antigravityDir\AGENTS.md.bak_$timestamp" -Force
+    }
+    Copy-Item "$scriptDir\AGENTS.md" "$antigravityDir\AGENTS.md" -Force
+    
+    if (-not (Test-Path "$antigravityDir\skills")) { New-Item -ItemType Directory -Path "$antigravityDir\skills" -Force | Out-Null }
+    Copy-Item "$scriptDir\skills\*" "$antigravityDir\skills\" -Recurse -Force
+}
 
 # 2. Claude Desktop
 $claudeDesktopFile = "$env:APPDATA\Claude\claude_desktop_config.json"

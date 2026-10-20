@@ -21,7 +21,7 @@ def get_default_models(overrides: Optional[Dict[str, ModelConfig]] = None) -> Di
     registry = {
         "gemini": ModelConfig(
             provider="gemini",
-            model_id=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+            model_id=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
             timeout_seconds=float(os.getenv("GEMINI_TIMEOUT", "12.0")),
         ),
         "groq": ModelConfig(
@@ -56,6 +56,28 @@ class CentralizedModelProvider:
     ):
         self.priority_order = priority_order or ["gemini", "groq", "anthropic", "openai"]
         self.models = get_default_models(models)
+
+    def check_provider_health(self, provider_name: str) -> Dict[str, Any]:
+        """Audits credential availability and model configuration for a provider."""
+        key_map = {
+            "gemini": "GEMINI_API_KEY",
+            "groq": "GROQ_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "openai": "OPENAI_API_KEY",
+        }
+        env_var = key_map.get(provider_name)
+        if not env_var:
+            return {"provider": provider_name, "status": "unsupported", "configured": False}
+
+        key = os.getenv(env_var)
+        configured = bool(key and not key.startswith("your_"))
+        config = self.models.get(provider_name)
+        return {
+            "provider": provider_name,
+            "model_id": config.model_id if config else "unknown",
+            "configured": configured,
+            "status": "ready" if configured else "missing_api_key",
+        }
 
     async def _call_gemini(self, prompt: str, config: ModelConfig) -> Optional[str]:
         api_key = os.getenv("GEMINI_API_KEY")

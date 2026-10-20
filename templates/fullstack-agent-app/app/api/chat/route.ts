@@ -19,6 +19,25 @@ const RequestBodySchema = z.object({
 // Maximum allowed payload size (64 KB)
 const MAX_PAYLOAD_BYTES = 64 * 1024;
 
+// In-Memory IP Sliding Window Rate Limiting (30 requests / minute)
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 30;
+
+function isRateLimited(clientIp: string): boolean {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  const history = rateLimitMap.get(clientIp) || [];
+  const validTimestamps = history.filter((t) => t > windowStart);
+
+  if (validTimestamps.length >= MAX_REQUESTS_PER_WINDOW) {
+    return true;
+  }
+  validTimestamps.push(now);
+  rateLimitMap.set(clientIp, validTimestamps);
+  return false;
+}
+
 // Synthetic Demonstration Customer Records (For testing and template evaluation only)
 interface SyntheticCustomerRecord {
   id: string;
@@ -61,7 +80,28 @@ const SYNTHETIC_DEMO_CUSTOMERS: Record<string, SyntheticCustomerRecord> = {
 };
 
 export async function POST(req: Request) {
-  // 1. Content-Length & Body Size Bounds Checking
+  // 1. Optional Bearer Token Authentication
+  const expectedAuthToken = process.env.CHAT_API_SECRET;
+  if (expectedAuthToken && expectedAuthToken !== 'optional_chat_secret_here') {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || authHeader !== `Bearer ${expectedAuthToken}`) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Missing or invalid Bearer token.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  // 2. Sliding Window Rate Limiting (per IP)
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+  if (isRateLimited(clientIp)) {
+    return new Response(
+      JSON.stringify({ error: 'Too Many Requests. Maximum 30 requests per minute.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
+    );
+  }
+
+  // 3. Content-Length & Body Size Bounds Checking (Measured in UTF-8 bytes)
   const contentLength = req.headers.get('content-length');
   if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
     return new Response(
@@ -70,11 +110,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // Read raw text first to guarantee hard size bound even if header is missing
+  // Read raw text and measure exact UTF-8 byte length
   let rawText: string;
   try {
     rawText = await req.text();
-    if (rawText.length > MAX_PAYLOAD_BYTES) {
+    const byteLength = Buffer.byteLength(rawText, 'utf8');
+    if (byteLength > MAX_PAYLOAD_BYTES) {
       return new Response(
         JSON.stringify({ error: 'Payload too large. Maximum size is 64KB.' }),
         { status: 413, headers: { 'Content-Type': 'application/json' } }
@@ -87,7 +128,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // 2. Safe JSON Parsing
+  // 4. Safe JSON Parsing
   let rawBody: unknown;
   try {
     rawBody = JSON.parse(rawText);

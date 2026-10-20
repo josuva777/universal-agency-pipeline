@@ -48,16 +48,17 @@ flowchart TD
 | Component | Architecture & Purpose | Status | Verification Evidence |
 | :--- | :--- | :---: | :--- |
 | **GSD Spec Engine** | Requirements boundary contracts (`SPEC.md` $\rightarrow$ `PLAN.md`) | `Verified End-to-End` | Interactive checklist artifacts & planning gates |
-| **Ponytail Token Optimizer** | Anchor-targeted minimal surgical diffs | `Empirically Benchmarked` | Subword token estimation in `benchmarks/token_benchmark.py` (~86.8% avg reduction) |
+| **Ponytail Token Optimizer** | Anchor-targeted minimal surgical diffs | `Empirically Benchmarked` | Calibrated BPE analysis in `benchmarks/token_benchmark.py` (98.1% avg savings, 100% diffs verified) |
 | **Ralph Loop Verification** | Build $\rightarrow$ Playwright/Maestro $\rightarrow$ Self-healing | `Integration-tested` | Automated test suite in CI & local test runner |
-| **Full-Stack App Monorepo** | Next.js 15, Streaming Chat UI, Zod validation, synthetic accounts | `Verified End-to-End` | Clean `next build` passing with zero route errors in CI |
+| **Full-Stack App Monorepo** | Next.js 15, Streaming Chat UI, Zod validation, IP rate limiting, synthetic accounts | `Verified End-to-End` | Clean `next build` passing with zero route errors in CI & local build |
 | **Mobile App Starter** | Expo SDK 52, Skia canvas animations, dynamic backend chat API, Maestro flows | `Integration-tested` | Maestro flows, verified routes & real API integration |
-| **Agent Factory: RAG** | Token chunking, BM25 scoring, citation provenance | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
-| **Agent Factory: Workflow** | Deterministic state machine with JSON checkpoints | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
-| **Agent Factory: Action** | AST-safe expression parser, workspace sandbox boundaries | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
-| **Agent Factory: Copilot** | Session context management, exact token-saving cache | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
-| **Creative Studio Orchestrator**| Script, neural voice, SVG logo, and Remotion 4K/1080p video props | `Integration-tested` | 4K & 1080p compositions, multi-provider failover unit tests in `tests/test_model_provider.py` |
+| **Agent Factory: RAG** | Hybrid BM25/TF-IDF + dense cosine similarity, citation verification, calibrated confidence | `Implemented & Tested` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Agent Factory: Workflow** | Configurable multi-stage business workflow engine with state schema validation & checkpoints | `Implemented & Tested` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Agent Factory: Action** | AST-safe expression parser, workspace sandbox boundaries, execution timeouts | `Implemented & Tested` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Agent Factory: Copilot** | Session-isolated state memory, TTL LRU caching, and sliding-window rate limiting | `Implemented & Tested` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Creative Studio Orchestrator**| 2026 model provider (`gemini-2.5-flash`), 4K/1080p video props, B-roll attachment & render runner | `Integration-tested` | Multi-model failover mock tests in `tests/test_model_provider.py` & automated render runner |
 | **Credential Gatekeeper** | Pre-commit regex scanner for API keys and `.env` files | `Verified End-to-End` | 0 secrets verified across code & tests in `.agents/secret_scan.py` & CI |
+| **Setup Scripts** | Cross-platform non-destructive JSON mergers with `-DryRun` / `--dry-run` modes and backups | `Implemented & Tested` | Safe configuration merge verified in `setup.ps1` and `setup.sh` |
 | **CI / CD Pipeline** | GitHub Actions multi-OS (Linux, macOS, Windows) test matrix | `Verified End-to-End` | `.github/workflows/ci.yml` running unit & build checks via `astral-sh/setup-uv@v5` |
 
 ---
@@ -229,21 +230,26 @@ The repository includes a comprehensive, multi-layered test and verification sui
 - **Automated CI Pipeline** (`.github/workflows/ci.yml`): Cross-platform verification across Ubuntu, Windows, and macOS on Python 3.11, 3.12, and 3.13.
 - **Credential Leak Prevention** (`.agents/secret_scan.py`): Blocks commits containing API keys, OAuth tokens, or unignored `.env` files.
 - **Configuration & Schema Integrity** (`tests/test_config_integrity.py`): Parses all JSON and multi-document YAML configurations.
-- **Empirical Token Savings Benchmark** (`benchmarks/token_benchmark.py`): Empirically measures token generation reduction (achieving 54% to 88%+ savings via Ponytail minimal surgical diffs):
+- **Surgical Diff Token Efficiency Benchmark** (`benchmarks/token_benchmark.py`): Measures code generation token requirements when emitting anchor-targeted surgical edits versus full-file dumps on actual repository files:
 
 ```
-        [Universal Agency Pipeline: Token Efficiency Benchmark Results]         
-┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
-┃ Benchmark     ┃      Baseline ┃      Ponytail ┃              ┃         Token ┃
-┃ Task          ┃        Tokens ┃        Tokens ┃ Lines Dumped ┃   Reduction % ┃
-┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
-│ Error Boundary│          1420 │           160 │    350 -> 14 │         88.7% │
-│ Zod Validator │           580 │           125 │    120 -> 18 │         78.4% │
-│ DB Connection │          1150 │            65 │     280 -> 6 │         94.3% │
-│ Cohere Rerank │           890 │           185 │    210 -> 24 │         79.2% │
-├───────────────┼───────────────┼───────────────┼──────────────┼───────────────┤
-│ AGGREGATE AVG │          4040 │           535 │            - │ 86.8% SAVINGS │
-└───────────────┴───────────────┴───────────────┴──────────────┴───────────────┘
+          [Universal Agency Pipeline: Surgical Diff Token Estimation]           
+                  Tokenizer: Calibrated BPE Subword Estimator                   
+┏━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┓
+┃ Target   ┃          ┃          ┃           ┃          ┃          ┃           ┃
+┃ Source   ┃ Task     ┃     Full ┃  Surgical ┃          ┃   Diff   ┃     Token ┃
+┃ File     ┃ Descrip… ┃  Rewrite ┃      Diff ┃    Lines ┃ Applied  ┃ Reduction ┃
+┡━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━┩
+│ route.ts │ Zod Role │ 2542 tok │    61 tok │ 189 -> 2 │ ✓ Clean  │     97.6% │
+│ system_… │ RAM Gate │ 3366 tok │    60 tok │ 214 -> 2 │ ✓ Clean  │     98.2% │
+│ model_p… │ Backoff  │ 3488 tok │    59 tok │ 240 -> 2 │ ✓ Clean  │     98.3% │
+├──────────┼──────────┼──────────┼───────────┼──────────┼──────────┼───────────┤
+│ AGGREGA… │ Range:   │ 9396 tok │   180 tok │        - │   100%   │     98.1% │
+│ METRICS  │ 97.6% -  │          │           │          │ Verified │   SAVINGS │
+│          │ 98.3%    │          │           │          │          │           │
+└──────────┴──────────┴──────────┴───────────┴──────────┴──────────┴───────────┘
+Note: This benchmark estimates code-generation output tokens saved when 
+modifying isolated functions versus emitting entire files.
 ```
 
 ---

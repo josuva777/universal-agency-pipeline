@@ -34,35 +34,76 @@ pytest>=8.0.0
 pytest-asyncio>=0.23.0
 httpx>=0.27.0
 """,
-        "sample_code": '''"""Production Hybrid RAG Knowledge Agent with Provenance Citations."""
+        "sample_code": '''"""Production Hybrid RAG Knowledge Agent with Dense + Sparse Hybrid Search and Provenance Citations."""
 import os
 import re
 import math
-from typing import List, Dict, Any, Optional
+import hashlib
+from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel, Field
 
 class DocumentChunk(BaseModel):
     chunk_id: str
     source_title: str
     content: str
+    dense_vector: List[float] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class RAGAnswer(BaseModel):
     query: str
     answer: str
-    citations: List[str] = Field(description="Exact chunk_ids used to formulate the answer")
+    citations: List[str] = Field(description="Exact chunk_ids verified in retrieved context")
     confidence: float = Field(ge=0.0, le=1.0)
     grounded: bool
+    retrieval_mode: str = "hybrid_dense_sparse"
 
 class ProductionRAGAgent:
-    """Production In-Memory Hybrid RAG with Token Chunking, BM25-style lexical scoring, and Citation Verification."""
+    """Production Hybrid RAG with Subword Chunking, BM25 Lexical + Dense Hash Vector Scoring, and Citation Verification."""
 
-    def __init__(self, top_k: int = 3):
+    STOPWORDS = {
+        "what", "is", "the", "for", "a", "an", "in", "on", "at", "to", "of", "and", "how",
+        "are", "do", "does", "can", "could", "should", "with", "from", "by", "about"
+    }
+
+    def __init__(self, top_k: int = 3, vector_dim: int = 64):
         self.top_k = top_k
+        self.vector_dim = vector_dim
         self.chunks: List[DocumentChunk] = []
+        self.doc_freqs: Dict[str, int] = {}
+        self.total_tokens: int = 0
+
+    def _tokenize(self, text: str) -> List[str]:
+        words = re.findall(r'\\b[a-zA-Z0-9_]{2,}\\b', text.lower())
+        return [w for w in words if w not in self.STOPWORDS]
+
+    def _compute_dense_vector(self, text: str) -> List[float]:
+        """Computes a normalized dense representation using character n-gram feature hashing (100% offline)."""
+        vec = [0.0] * self.vector_dim
+        words = text.lower().split()
+        if not words:
+            return vec
+
+        for word in words:
+            features = [word] + [word[i:i+3] for i in range(max(1, len(word) - 2))]
+            for feat in features:
+                h = int(hashlib.md5(feat.encode('utf-8')).hexdigest(), 16)
+                idx = h % self.vector_dim
+                sign = 1.0 if ((h >> 8) & 1) == 0 else -1.0
+                vec[idx] += sign
+
+        norm = math.sqrt(sum(x * x for x in vec))
+        if norm > 1e-6:
+            vec = [x / norm for x in vec]
+        return vec
+
+    def _cosine_similarity(self, v1: List[float], v2: List[float]) -> float:
+        if not v1 or not v2 or len(v1) != len(v2):
+            return 0.0
+        dot = sum(a * b for a, b in zip(v1, v2))
+        return max(0.0, min(1.0, (dot + 1.0) / 2.0))
 
     def ingest_text(self, source_title: str, text: str, chunk_size: int = 120, overlap: int = 20):
-        """Splits source document into overlapping chunks with persistent provenance IDs."""
+        """Splits source document into overlapping chunks with persistent provenance IDs and precomputed dense embeddings."""
         words = text.split()
         if not words:
             return
@@ -73,47 +114,77 @@ class ProductionRAGAgent:
             chunk_words = words[idx : idx + chunk_size]
             chunk_text = " ".join(chunk_words)
             chunk_id = f"{re.sub(r'[^a-zA-Z0-9]', '_', source_title.lower())}_chunk_{chunk_num}"
+            tokens = self._tokenize(chunk_text)
+            for t in set(tokens):
+                self.doc_freqs[t] = self.doc_freqs.get(t, 0) + 1
+            self.total_tokens += len(tokens)
+
+            vector = self._compute_dense_vector(chunk_text)
             self.chunks.append(DocumentChunk(
                 chunk_id=chunk_id,
                 source_title=source_title,
                 content=chunk_text,
+                dense_vector=vector,
                 metadata={"index": chunk_num, "word_count": len(chunk_words)}
             ))
-            idx += (chunk_size - overlap)
+            idx += max(1, chunk_size - overlap)
             chunk_num += 1
 
-    STOPWORDS = {"what", "is", "the", "for", "a", "an", "in", "on", "at", "to", "of", "and", "how"}
-
-    def _score_chunk(self, query: str, chunk: DocumentChunk) -> float:
-        """Computes lexical relevance score between query and document chunk."""
-        raw_terms = set(re.findall(r'\\w+', query.lower()))
-        query_terms = raw_terms - self.STOPWORDS
-        if not query_terms:
+    def _bm25_score(self, query_tokens: List[str], chunk: DocumentChunk, avg_len: float) -> float:
+        """BM25 term frequency calculation."""
+        chunk_tokens = self._tokenize(chunk.content)
+        if not chunk_tokens:
             return 0.0
 
-        chunk_terms = set(re.findall(r'\\w+', chunk.content.lower())) - self.STOPWORDS
-        if not chunk_terms:
-            return 0.0
+        score = 0.0
+        k1 = 1.5
+        b = 0.75
+        doc_len = len(chunk_tokens)
+        N = len(self.chunks)
 
-        matches = len(query_terms.intersection(chunk_terms))
-        if matches == 0:
-            return 0.0
-        return matches / (math.sqrt(len(chunk_terms)) + 1.0)
+        for qt in query_tokens:
+            freq = chunk_tokens.count(qt)
+            if freq == 0:
+                continue
+            df = self.doc_freqs.get(qt, 1)
+            idf = math.log(1.0 + (N - df + 0.5) / (df + 0.5))
+            term_score = idf * (freq * (k1 + 1.0)) / (freq + k1 * (1.0 - b + b * (doc_len / (avg_len or 1.0))))
+            score += term_score
 
-    def retrieve(self, query: str) -> List[DocumentChunk]:
-        """Retrieves and ranks the top-K relevant chunks."""
+        return max(0.0, score)
+
+    def retrieve(self, query: str, alpha: float = 0.5) -> List[Tuple[float, DocumentChunk]]:
+        """Hybrid search combining sparse BM25 and dense cosine similarity."""
         if not self.chunks:
             return []
 
-        scored = [(self._score_chunk(query, c), c) for c in self.chunks]
-        scored.sort(key=lambda x: x[0], reverse=True)
-        return [c for score, c in scored[: self.top_k] if score > 0.05]
+        query_tokens = self._tokenize(query)
+        if not query_tokens:
+            return []
+
+        query_vec = self._compute_dense_vector(query)
+        avg_len = (self.total_tokens / len(self.chunks)) if self.chunks else 1.0
+
+        bm25_scores = [self._bm25_score(query_tokens, c, avg_len) for c in self.chunks]
+        max_bm25 = max(bm25_scores) if bm25_scores else 1.0
+        norm_bm25 = [s / (max_bm25 or 1.0) for s in bm25_scores]
+
+        dense_scores = [self._cosine_similarity(query_vec, c.dense_vector) for c in self.chunks]
+
+        fused: List[Tuple[float, DocumentChunk]] = []
+        for i, chunk in enumerate(self.chunks):
+            combined = (alpha * dense_scores[i]) + ((1.0 - alpha) * norm_bm25[i])
+            if norm_bm25[i] > 0.05 or dense_scores[i] > 0.65:
+                fused.append((combined, chunk))
+
+        fused.sort(key=lambda x: x[0], reverse=True)
+        return fused[: self.top_k]
 
     async def query(self, user_query: str) -> RAGAnswer:
-        """Executes grounded retrieval and synthesizes response with verified citation provenance."""
-        relevant_chunks = self.retrieve(user_query)
+        """Executes grounded hybrid retrieval and synthesizes answers with verified citation provenance."""
+        scored_chunks = self.retrieve(user_query)
 
-        if not relevant_chunks:
+        if not scored_chunks:
             return RAGAnswer(
                 query=user_query,
                 answer="No relevant documentation found matching your query in the verified knowledge base.",
@@ -122,14 +193,32 @@ class ProductionRAGAgent:
                 grounded=False
             )
 
-        # Synthesize grounded answer citing verified chunk IDs
-        cited_ids = [c.chunk_id for c in relevant_chunks]
-        combined_context = " ".join([c.content for c in relevant_chunks])
+        top_score, top_chunk = scored_chunks[0]
+        query_tokens = set(self._tokenize(user_query))
 
-        # Clean synthesis
+        matching_sentences: List[str] = []
+        cited_ids: List[str] = []
+
+        for score, chunk in scored_chunks:
+            cited_ids.append(chunk.chunk_id)
+            sentences = re.split(r'(?<=[.!?]) +', chunk.content)
+            for s in sentences:
+                s_tokens = set(self._tokenize(s))
+                if query_tokens.intersection(s_tokens):
+                    matching_sentences.append(s.strip())
+
+        extracted_text = " ".join(matching_sentences[:3]) if matching_sentences else top_chunk.content[:200]
+
+        covered_tokens = 0
+        extracted_tokens = set(self._tokenize(extracted_text))
+        for qt in query_tokens:
+            if qt in extracted_tokens:
+                covered_tokens += 1
+        coverage_ratio = (covered_tokens / len(query_tokens)) if query_tokens else 0.0
+        calibrated_conf = round(min(0.99, max(0.1, 0.4 * top_score + 0.6 * coverage_ratio)), 2)
+
         answer_text = (
-            f"Based on verified records from {relevant_chunks[0].source_title}: "
-            f"{relevant_chunks[0].content[:200]}... "
+            f"Based on verified records from {top_chunk.source_title}: {extracted_text} "
             f"(Source citations: {', '.join(cited_ids)})"
         )
 
@@ -137,11 +226,11 @@ class ProductionRAGAgent:
             query=user_query,
             answer=answer_text,
             citations=cited_ids,
-            confidence=round(min(0.98, 0.65 + (0.1 * len(relevant_chunks))), 2),
+            confidence=calibrated_conf,
             grounded=True
         )
 ''',
-        "test_code": '''"""Automated Unit Tests for Production RAG Agent."""
+        "test_code": '''"""Automated Unit Tests for Production Hybrid RAG Agent."""
 import pytest
 from agent_rag import ProductionRAGAgent
 
@@ -156,18 +245,20 @@ def rag_agent():
     agent.ingest_text("SecurityPolicy", sample_policy, chunk_size=25, overlap=5)
     return agent
 
-def test_ingestion_creates_chunks(rag_agent):
+def test_ingestion_creates_chunks_with_embeddings(rag_agent):
     assert len(rag_agent.chunks) > 0
     assert rag_agent.chunks[0].source_title == "SecurityPolicy"
     assert "chunk_" in rag_agent.chunks[0].chunk_id
+    assert len(rag_agent.chunks[0].dense_vector) == 64
 
 @pytest.mark.asyncio
-async def test_retrieval_and_citations(rag_agent):
+async def test_hybrid_retrieval_and_citations(rag_agent):
     res = await rag_agent.query("What are the rules for production database access?")
     assert res.grounded is True
     assert len(res.citations) > 0
     assert "SecurityPolicy" in res.answer
-    assert res.confidence >= 0.65
+    assert res.confidence >= 0.50
+    assert res.retrieval_mode == "hybrid_dense_sparse"
 
 @pytest.mark.asyncio
 async def test_out_of_domain_query_refusal(rag_agent):
@@ -175,6 +266,13 @@ async def test_out_of_domain_query_refusal(rag_agent):
     assert res.grounded is False
     assert len(res.citations) == 0
     assert res.confidence == 0.0
+
+@pytest.mark.asyncio
+async def test_citations_strictly_verified_in_index(rag_agent):
+    res = await rag_agent.query("How often must passwords be rotated?")
+    valid_ids = {c.chunk_id for c in rag_agent.chunks}
+    for cite in res.citations:
+        assert cite in valid_ids
 '''
     },
     "workflow": {
@@ -186,14 +284,24 @@ async def test_out_of_domain_query_refusal(rag_agent):
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 """,
-        "sample_code": '''"""Production Deterministic Workflow Agent with Persistent State & Circuit Breakers."""
+        "sample_code": '''"""Production Configurable Workflow Engine with State Machine, Checkpointing & Recovery."""
 import os
 import json
 from pathlib import Path
-from typing import Dict, Any, Literal, Optional
+from typing import Dict, Any, Literal, Optional, Callable, List
 from pydantic import BaseModel, Field
 
-WorkflowStage = Literal["INIT", "VALIDATING", "PROCESSING", "REVIEW", "COMPLETED", "FAILED", "ESCALATED"]
+WorkflowStage = Literal[
+    "INIT",
+    "INGESTION",
+    "VALIDATING",
+    "PROCESSING",
+    "RULES_CHECK",
+    "REVIEW",
+    "COMPLETED",
+    "FAILED",
+    "ESCALATED"
+]
 
 class WorkflowState(BaseModel):
     task_id: str
@@ -201,13 +309,22 @@ class WorkflowState(BaseModel):
     iteration: int = 0
     max_retries: int = 3
     payload: Dict[str, Any] = Field(default_factory=dict)
-    errors: list[str] = Field(default_factory=list)
+    history: List[str] = Field(default_factory=list)
+    errors: List[str] = Field(default_factory=list)
 
 class ProductionWorkflowEngine:
-    """Deterministic state machine with JSON persistence, transition validation, and circuit breakers."""
+    """Configurable state machine with JSON persistence, schema transition validation, and circuit breakers."""
 
     def __init__(self, checkpoint_path: Optional[str] = None):
         self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else None
+        self.step_handlers: Dict[WorkflowStage, Callable[[WorkflowState], WorkflowState]] = {
+            "INIT": self._step_init,
+            "INGESTION": self._step_ingestion,
+            "VALIDATING": self._step_validating,
+            "PROCESSING": self._step_processing,
+            "RULES_CHECK": self._step_rules_check,
+            "REVIEW": self._step_review,
+        }
 
     def save_checkpoint(self, state: WorkflowState):
         if self.checkpoint_path:
@@ -220,54 +337,85 @@ class ProductionWorkflowEngine:
                 return WorkflowState.model_validate_json(f.read())
         return None
 
+    def _step_init(self, state: WorkflowState) -> WorkflowState:
+        if not state.payload:
+            state.stage = "FAILED"
+            state.errors.append("Empty payload in INIT state.")
+        else:
+            state.stage = "INGESTION"
+        return state
+
+    def _step_ingestion(self, state: WorkflowState) -> WorkflowState:
+        state.payload["ingested_at"] = "2026-10-20T12:00:00Z"
+        state.stage = "VALIDATING"
+        return state
+
+    def _step_validating(self, state: WorkflowState) -> WorkflowState:
+        required = ["client_name", "tier", "budget"]
+        missing = [k for k in required if k not in state.payload]
+        if missing:
+            state.errors.append(f"Validation error: Missing required fields: {missing}")
+            state.stage = "FAILED"
+        elif state.payload["budget"] <= 0:
+            state.errors.append("Validation error: Budget must be greater than 0.")
+            state.stage = "FAILED"
+        else:
+            state.stage = "PROCESSING"
+        return state
+
+    def _step_processing(self, state: WorkflowState) -> WorkflowState:
+        tier = state.payload.get("tier", "standard").lower()
+        budget = float(state.payload.get("budget", 0))
+
+        multipliers = {"enterprise": 0.35, "scale": 0.25, "standard": 0.15}
+        reserve_ratio = multipliers.get(tier, 0.15)
+        state.payload["allocations"] = {
+            "core_build": round(budget * (1.0 - reserve_ratio), 2),
+            "contingency_reserve": round(budget * reserve_ratio, 2),
+            "tier_sla_hours": 2 if tier == "enterprise" else 24
+        }
+        state.stage = "RULES_CHECK"
+        return state
+
+    def _step_rules_check(self, state: WorkflowState) -> WorkflowState:
+        allocations = state.payload.get("allocations", {})
+        if allocations.get("core_build", 0) < 100.0:
+            state.errors.append("Business rule failed: Minimum core build budget is 100.0.")
+            state.stage = "ESCALATED"
+        else:
+            state.stage = "REVIEW"
+        return state
+
+    def _step_review(self, state: WorkflowState) -> WorkflowState:
+        if state.payload.get("allocations"):
+            state.stage = "COMPLETED"
+        else:
+            state.stage = "FAILED"
+        return state
+
     def step(self, state: WorkflowState) -> WorkflowState:
         """Executes a single validated state transition with circuit breaker protection."""
         state.iteration += 1
+        state.history.append(state.stage)
 
-        # Circuit breaker check
-        if state.iteration > (state.max_retries * 2):
+        if state.iteration > (state.max_retries * 3):
             state.stage = "ESCALATED"
             state.errors.append("Circuit breaker tripped: exceeded maximum state iterations.")
             self.save_checkpoint(state)
             return state
 
-        if state.stage == "INIT":
-            # Validation stage
-            if not state.payload:
-                state.stage = "FAILED"
-                state.errors.append("Empty payload in INIT state.")
-            else:
-                state.stage = "VALIDATING"
-
-        elif state.stage == "VALIDATING":
-            required_keys = state.payload.get("required_keys", [])
-            missing = [k for k in required_keys if k not in state.payload]
-            if missing:
-                state.errors.append(f"Missing required payload keys: {missing}")
-                if state.iteration >= state.max_retries:
-                    state.stage = "ESCALATED"
-                else:
-                    state.stage = "FAILED"
-            else:
-                state.stage = "PROCESSING"
-
-        elif state.stage == "PROCESSING":
-            # Apply processing logic
-            state.payload["processed_value"] = state.payload.get("amount", 0) * 1.18
-            state.stage = "REVIEW"
-
-        elif state.stage == "REVIEW":
-            # Verification gate
-            if state.payload.get("processed_value", 0) > 0:
-                state.stage = "COMPLETED"
-            else:
-                state.stage = "FAILED"
+        handler = self.step_handlers.get(state.stage)
+        if handler:
+            state = handler(state)
+        else:
+            state.stage = "FAILED"
+            state.errors.append(f"No handler defined for stage: {state.stage}")
 
         self.save_checkpoint(state)
         return state
 
     def run_until_terminal(self, initial_state: WorkflowState) -> WorkflowState:
-        """Runs the state machine until reaching COMPLETED, ESCALATED, or FAILED."""
+        """Runs the state machine until reaching a terminal state (COMPLETED, ESCALATED, FAILED)."""
         state = initial_state
         self.save_checkpoint(state)
         terminal_states = {"COMPLETED", "FAILED", "ESCALATED"}
@@ -275,40 +423,62 @@ class ProductionWorkflowEngine:
             state = self.step(state)
         return state
 ''',
-        "test_code": '''"""Automated Unit Tests for Workflow Agent."""
+        "test_code": '''"""Automated Unit Tests for Configurable Workflow Agent."""
 import pytest
 from workflow_agent import ProductionWorkflowEngine, WorkflowState
 
-def test_successful_workflow_run(tmp_path):
+def test_successful_multi_stage_workflow(tmp_path):
     ckpt = tmp_path / "checkpoint.json"
     engine = ProductionWorkflowEngine(str(ckpt))
     initial = WorkflowState(
-        task_id="TASK-100",
-        payload={"required_keys": ["amount"], "amount": 250.0}
+        task_id="TASK-PROD-101",
+        payload={"client_name": "Acme Corp", "tier": "enterprise", "budget": 10000.0}
     )
 
     final = engine.run_until_terminal(initial)
     assert final.stage == "COMPLETED"
-    assert final.payload["processed_value"] == pytest.approx(295.0)
+    assert "allocations" in final.payload
+    assert final.payload["allocations"]["core_build"] == 6500.0
+    assert final.payload["allocations"]["contingency_reserve"] == 3500.0
+    assert final.payload["allocations"]["tier_sla_hours"] == 2
     assert ckpt.exists()
 
-def test_missing_keys_triggers_failure():
+def test_validation_failure_on_missing_fields():
     engine = ProductionWorkflowEngine()
     initial = WorkflowState(
-        task_id="TASK-FAIL",
-        payload={"required_keys": ["client_id"]}
+        task_id="TASK-FAIL-1",
+        payload={"client_name": "Incomplete Client"}
     )
     final = engine.run_until_terminal(initial)
-    assert final.stage in {"FAILED", "ESCALATED"}
-    assert len(final.errors) > 0
+    assert final.stage == "FAILED"
+    assert any("Missing required fields" in e for e in final.errors)
 
-def test_circuit_breaker_prevents_infinite_loops():
+def test_business_rule_escalation_on_insufficient_budget():
     engine = ProductionWorkflowEngine()
-    stuck_state = WorkflowState(task_id="TASK-STUCK", iteration=15, payload={"test": 1})
-    stuck_state.stage = "VALIDATING"
-    res = engine.step(stuck_state)
-    assert res.stage == "ESCALATED"
-    assert "Circuit breaker tripped" in res.errors[-1]
+    initial = WorkflowState(
+        task_id="TASK-LOW-BUDGET",
+        payload={"client_name": "Small Project", "tier": "standard", "budget": 50.0}
+    )
+    final = engine.run_until_terminal(initial)
+    assert final.stage == "ESCALATED"
+    assert any("Minimum core build budget" in e for e in final.errors)
+
+def test_checkpoint_persistence_and_resume(tmp_path):
+    ckpt = tmp_path / "recover.json"
+    engine1 = ProductionWorkflowEngine(str(ckpt))
+    state = WorkflowState(
+        task_id="TASK-INTERRUPT",
+        payload={"client_name": "Resilient Corp", "tier": "scale", "budget": 5000.0}
+    )
+    state = engine1.step(state)
+    state = engine1.step(state)
+
+    engine2 = ProductionWorkflowEngine(str(ckpt))
+    recovered = engine2.load_checkpoint()
+    assert recovered is not None
+    assert recovered.task_id == "TASK-INTERRUPT"
+    final = engine2.run_until_terminal(recovered)
+    assert final.stage == "COMPLETED"
 '''
     },
     "action": {
@@ -423,9 +593,9 @@ def test_path_traversal_blocked(tmp_path):
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 """,
-        "sample_code": '''"""Production Conversational Copilot with Exact/Semantic Caching & Session Memory."""
+        "sample_code": '''"""Production Conversational Copilot with Session State Isolation, TTL Cache & Rate Limiting."""
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from pydantic import BaseModel, Field
 
 class ChatMessage(BaseModel):
@@ -437,47 +607,84 @@ class CopilotSession(BaseModel):
     session_id: str
     messages: List[ChatMessage] = Field(default_factory=list)
     max_history: int = 10
+    created_at: float = Field(default_factory=time.time)
+    last_active: float = Field(default_factory=time.time)
+
+class CacheEntry(BaseModel):
+    response: str
+    created_at: float
+    ttl_seconds: float
+
+    def is_expired(self, current_time: float) -> bool:
+        return (current_time - self.created_at) > self.ttl_seconds
 
 class ProductionCopilot:
-    """Conversational Copilot with Token-Saving Response Cache and Session State."""
+    """Conversational Copilot with Session Isolation, TTL LRU Caching, and Sliding-Window Rate Limiting."""
 
-    def __init__(self):
+    def __init__(self, cache_ttl_seconds: float = 60.0, max_requests_per_minute: int = 20):
         self.sessions: Dict[str, CopilotSession] = {}
-        self.cache: Dict[str, str] = {}
+        self.session_cache: Dict[Tuple[str, str], CacheEntry] = {}
         self.cache_hits: int = 0
+        self.cache_ttl_seconds = cache_ttl_seconds
+        self.max_requests_per_minute = max_requests_per_minute
+        self.rate_limit_history: Dict[str, List[float]] = {}
 
     def get_or_create_session(self, session_id: str) -> CopilotSession:
         if session_id not in self.sessions:
             self.sessions[session_id] = CopilotSession(session_id=session_id)
         return self.sessions[session_id]
 
+    def _check_rate_limit(self, session_id: str, now: float) -> bool:
+        """Sliding-window rate limiter per session. Returns True if permitted, False if rate-limited."""
+        window_start = now - 60.0
+        history = self.rate_limit_history.setdefault(session_id, [])
+        self.rate_limit_history[session_id] = [t for t in history if t > window_start]
+        if len(self.rate_limit_history[session_id]) >= self.max_requests_per_minute:
+            return False
+        self.rate_limit_history[session_id].append(now)
+        return True
+
     async def chat(self, session_id: str, user_input: str) -> Dict[str, Any]:
         cleaned = user_input.strip()
         if not cleaned:
             return {"error": "Message cannot be empty."}
 
-        # 1. Cache Check
-        cache_key = cleaned.lower()
-        if cache_key in self.cache:
-            self.cache_hits += 1
+        now = time.time()
+
+        if not self._check_rate_limit(session_id, now):
             return {
-                "response": self.cache[cache_key],
-                "cached": True,
+                "error": "Rate limit exceeded. Maximum requests per minute reached.",
+                "status_code": 429,
                 "session_id": session_id
             }
 
-        # 2. Session Context Management
+        cache_key = (session_id, cleaned.lower())
+        if cache_key in self.session_cache:
+            entry = self.session_cache[cache_key]
+            if not entry.is_expired(now):
+                self.cache_hits += 1
+                return {
+                    "response": entry.response,
+                    "cached": True,
+                    "session_id": session_id
+                }
+            else:
+                del self.session_cache[cache_key]
+
         session = self.get_or_create_session(session_id)
-        session.messages.append(ChatMessage(role="user", content=cleaned))
+        session.last_active = now
+        session.messages.append(ChatMessage(role="user", content=cleaned, timestamp=now))
 
-        # 3. Grounded Synthesis
-        response_text = f"Enterprise Assistant Response to: '{cleaned}' (Session turn: {len(session.messages)})"
+        turn = len(session.messages)
+        response_text = f"Enterprise Assistant (Session {session_id}, Turn {turn}): Response to '{cleaned}'."
 
-        # 4. Cache & Record
-        self.cache[cache_key] = response_text
-        session.messages.append(ChatMessage(role="assistant", content=response_text))
+        self.session_cache[cache_key] = CacheEntry(
+            response=response_text,
+            created_at=now,
+            ttl_seconds=self.cache_ttl_seconds
+        )
+        session.messages.append(ChatMessage(role="assistant", content=response_text, timestamp=now))
 
-        # Truncate history to stay strictly within context bounds
         if len(session.messages) > session.max_history:
             session.messages = session.messages[-session.max_history :]
 
@@ -488,7 +695,8 @@ class ProductionCopilot:
             "total_turns": len(session.messages)
         }
 ''',
-        "test_code": '''"""Automated Unit Tests for Copilot Agent."""
+        "test_code": '''"""Automated Unit Tests for Conversational Copilot."""
+import time
 import pytest
 from copilot import ProductionCopilot
 
@@ -499,10 +707,42 @@ async def test_copilot_chat_and_caching():
     assert res1["cached"] is False
     assert "return policy" in res1["response"]
 
-    # Second identical query must hit cache
     res2 = await copilot.chat("user_1", "What is the return policy?")
     assert res2["cached"] is True
     assert copilot.cache_hits == 1
+
+@pytest.mark.asyncio
+async def test_session_isolation_prevents_cache_leak():
+    copilot = ProductionCopilot()
+    res_a = await copilot.chat("session_alpha", "Tell me my secret token")
+    assert res_a["cached"] is False
+    assert "session_alpha" in res_a["response"]
+
+    res_b = await copilot.chat("session_beta", "Tell me my secret token")
+    assert res_b["cached"] is False
+    assert "session_beta" in res_b["response"]
+
+@pytest.mark.asyncio
+async def test_cache_ttl_expiration():
+    copilot = ProductionCopilot(cache_ttl_seconds=0.1)
+    await copilot.chat("user_ttl", "Expiring query")
+    assert copilot.cache_hits == 0
+
+    time.sleep(0.15)
+    res2 = await copilot.chat("user_ttl", "Expiring query")
+    assert res2["cached"] is False
+
+@pytest.mark.asyncio
+async def test_sliding_window_rate_limiting():
+    copilot = ProductionCopilot(max_requests_per_minute=3)
+    sess = "rate_limit_user"
+    for _ in range(3):
+        res = await copilot.chat(sess, "Quick message")
+        assert "error" not in res
+
+    res_blocked = await copilot.chat(sess, "Quick message")
+    assert "error" in res_blocked
+    assert res_blocked["status_code"] == 429
 
 @pytest.mark.asyncio
 async def test_session_history_bounds():

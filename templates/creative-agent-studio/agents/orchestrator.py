@@ -147,14 +147,14 @@ async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialS
         voiceover_script=(
             f"The future isn't coming. It's already here. "
             f"Meet {brand_slug}. Engineered from the ground up for breakthrough performance, "
-            f"uncompromising precision, and verified reliability. "
+            f"uncompromising precision, and streamlined execution. "
             f"Step into the next era today."
         ),
         scenes=[
             ScenePlan(id=1, type="hero", headline="THE NEXT ERA", subtext="Precision Engineered", duration_seconds=3.0, vfx_type="particles"),
             ScenePlan(id=2, type="tension", headline="RETHINK EVERYTHING", subtext="Legacy workflows hold you back", duration_seconds=3.5, vfx_type="chromatic"),
             ScenePlan(id=3, type="mockup_3d", headline="ENGINEERED PRECISION", subtext="3D Architecture at scale", duration_seconds=5.0, vfx_type="glow"),
-            ScenePlan(id=4, type="metrics", headline="PROVEN IMPACT", subtext="[Insert verified client benchmark or metric]", duration_seconds=3.5, vfx_type="particles"),
+            ScenePlan(id=4, type="metrics", headline="PROVEN IMPACT", subtext="Measurable Performance at Scale", duration_seconds=3.5, vfx_type="particles"),
             ScenePlan(id=5, type="cta", headline=brand_slug.upper(), subtext="Deploy with Confidence", duration_seconds=4.0, vfx_type="glow"),
         ],
         primary_color=chosen_style["primary"],
@@ -249,7 +249,8 @@ async def run_creative_pipeline(brief: str, output_directory: str, style: str = 
         "scenes": [s.model_dump() for s in script.scenes],
         "voiceoverAudioPath": str(Path(audio_path).resolve()),
         "subtitles": [c.model_dump() for c in caption_segments],
-        "logoSvgPath": str(Path(logo_meta["svg_path"]).resolve())
+        "logoSvgPath": str(Path(logo_meta["svg_path"]).resolve()),
+        "brollClips": [b.model_dump() for b in broll_clips]
     }
 
     props_file = out_dir / "remotion_props.json"
@@ -274,15 +275,54 @@ async def run_creative_pipeline(brief: str, output_directory: str, style: str = 
     )
     console.print(f"  ✓ Interactive Client Portal created: {portal_path}")
 
+    # 8. Optional Automated Video Rendering Subprocess
+    rendered_video_path = None
+    if render_video:
+        console.print("[bold cyan]🎬 Phase 8: Executing Remotion Video Render Subprocess...[/bold cyan]")
+        import shutil
+        import subprocess
+
+        video_project_dir = Path(__file__).resolve().parent.parent / "video"
+        output_mp4 = out_dir / "commercial_master.mp4"
+        npx_cmd = shutil.which("npx") or ("npx.cmd" if sys.platform == "win32" else None)
+
+        if npx_cmd and video_project_dir.exists():
+            cmd = [
+                npx_cmd,
+                "remotion",
+                "render",
+                "src/index.tsx",
+                "Commercial",
+                f"--props={str(props_file.resolve())}",
+                f"--output={str(output_mp4.resolve())}",
+            ]
+            try:
+                res = subprocess.run(cmd, cwd=str(video_project_dir), capture_output=True, text=True, timeout=300)
+                if res.returncode == 0 and output_mp4.exists():
+                    rendered_video_path = str(output_mp4)
+                    console.print(f"  ✓ Rendered master video: [bold green]{output_mp4}[/bold green]")
+                else:
+                    console.print(f"  [yellow]Notice: Remotion exited ({res.returncode}). Command available to run manually.[/yellow]")
+            except Exception as e:
+                console.print(f"  [yellow]Subprocess render notice: {e}[/yellow]")
+        else:
+            console.print("  [dim]npx or video template not present in local path; rendering command generated.[/dim]")
+
+    render_status_line = (
+        f"• Rendered Master Video: [bold green]{rendered_video_path}[/bold green]\n"
+        if rendered_video_path else
+        f"[bold cyan]To render 4K video manually:[/bold cyan]\ncd video && npx remotion render src/index.tsx Commercial --props={props_file} --output={out_dir}/commercial_master.mp4\n"
+    )
+
     console.print(Panel.fit(
         f"[bold green]✨ Creative Studio Production Package Ready![/bold green]\n"
         f"• Interactive Client Portal: [link={portal_path}]{portal_path}[/link]\n"
         f"• Voiceover: {audio_path}\n"
         f"• Subtitles: {srt_path}\n"
         f"• Logo Suite: {logo_meta['svg_path']}\n"
-        f"• Remotion Payload: {props_file}\n\n"
-        f"[bold cyan]To render 4K video:[/bold cyan]\n"
-        f"cd video && npx remotion render src/index.ts Commercial --props={props_file} --output={out_dir}/commercial_master.mp4",
+        f"• Remotion Payload: {props_file}\n"
+        f"• B-Roll Clips Attached: {len(broll_clips)}\n\n"
+        f"{render_status_line}",
         border_style="green"
     ))
 
@@ -294,10 +334,11 @@ app = typer.Typer(help="Creative Studio CLI Orchestrator")
 def produce(
     brief: str = typer.Option(..., "--brief", "-b", help="Client creative brief description"),
     output: str = typer.Option("./assets/outputs/production_run", "--output", "-o", help="Output directory"),
-    style: str = typer.Option("fintech", "--style", "-s", help="Aesthetic preset: fintech | saas | streetwear | editorial")
+    style: str = typer.Option("fintech", "--style", "-s", help="Aesthetic preset: fintech | saas | streetwear | editorial"),
+    render: bool = typer.Option(False, "--render", "-r", help="Automatically execute Remotion render subprocess to produce .mp4")
 ):
     """Executes end-to-end multi-agent creative commercial production."""
-    asyncio.run(run_creative_pipeline(brief, output, style=style))
+    asyncio.run(run_creative_pipeline(brief, output, style=style, render_video=render))
 
 if __name__ == "__main__":
     app()
