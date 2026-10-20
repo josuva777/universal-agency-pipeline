@@ -28,6 +28,8 @@ export const Commercial: React.FC<CommercialProps> = ({
   ],
   voiceoverAudioPath,
   subtitles = [],
+  logoSvgPath,
+  brollClips = [],
 }) => {
   const { fps } = useVideoConfig();
 

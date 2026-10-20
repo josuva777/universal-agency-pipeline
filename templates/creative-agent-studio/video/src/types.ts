@@ -20,6 +20,14 @@ export interface CaptionWord {
   end_seconds: number;
 }
 
+export interface BrollClip {
+  id: string;
+  url: string;
+  title: string;
+  start_seconds?: number;
+  duration_seconds?: number;
+}
+
 export interface CommercialProps {
   projectName?: string;
   brandName?: string;
@@ -29,4 +37,5 @@ export interface CommercialProps {
   voiceoverAudioPath?: string;
   subtitles?: CaptionWord[];
   logoSvgPath?: string;
+  brollClips?: BrollClip[];
 }

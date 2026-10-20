@@ -21,6 +21,7 @@ def test_scaffolding_generates_all_files(tmp_path, archetype):
     assert (target_dir / "requirements.txt").exists()
     assert (target_dir / ".env.example").exists()
     assert (target_dir / "README.md").exists()
+    assert (target_dir / "pyproject.toml").exists()
 
     code_file = target_dir / TEMPLATES[archetype]["code_filename"]
     assert code_file.exists()

@@ -80,7 +80,16 @@ const SYNTHETIC_DEMO_CUSTOMERS: Record<string, SyntheticCustomerRecord> = {
 };
 
 export async function POST(req: Request) {
-  // 1. Optional Bearer Token Authentication
+  // 1. Sliding Window Rate Limiting (per IP) - Checked FIRST to protect upstream auth and compute
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+  if (isRateLimited(clientIp)) {
+    return new Response(
+      JSON.stringify({ error: 'Too Many Requests. Maximum 30 requests per minute.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
+    );
+  }
+
+  // 2. Optional Bearer Token Authentication
   const expectedAuthToken = process.env.CHAT_API_SECRET;
   if (expectedAuthToken && expectedAuthToken !== 'optional_chat_secret_here') {
     const authHeader = req.headers.get('authorization');
@@ -90,15 +99,6 @@ export async function POST(req: Request) {
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
-  }
-
-  // 2. Sliding Window Rate Limiting (per IP)
-  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
-  if (isRateLimited(clientIp)) {
-    return new Response(
-      JSON.stringify({ error: 'Too Many Requests. Maximum 30 requests per minute.' }),
-      { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '60' } }
-    );
   }
 
   // 3. Content-Length & Body Size Bounds Checking (Measured in UTF-8 bytes)

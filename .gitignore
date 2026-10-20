@@ -18,6 +18,13 @@ dist/
 build/
 *.egg-info/
 
+# Next.js
+.next/
+out/
+
+# Pytest
+.pytest_cache/
+
 # Node.js
 node_modules/
 npm-debug.log*

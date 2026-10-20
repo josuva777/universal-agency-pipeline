@@ -162,7 +162,7 @@ async def generate_script_with_ai(brief: str, chosen_style: dict) -> CommercialS
         accent_color=chosen_style["accent"]
     )
 
-async def run_creative_pipeline(brief: str, output_directory: str, style: str = "fintech") -> Dict[str, Any]:
+async def run_creative_pipeline(brief: str, output_directory: str, style: str = "fintech", render_video: bool = False) -> Dict[str, Any]:
     out_dir = Path(output_directory)
     out_dir.mkdir(parents=True, exist_ok=True)
     video_dir = out_dir / "video_assets"

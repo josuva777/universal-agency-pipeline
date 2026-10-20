@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import re
 from pathlib import Path
 import typer
 
@@ -103,16 +104,39 @@ class ProductionRAGAgent:
         return max(0.0, min(1.0, (dot + 1.0) / 2.0))
 
     def ingest_text(self, source_title: str, text: str, chunk_size: int = 120, overlap: int = 20):
-        """Splits source document into overlapping chunks with persistent provenance IDs and precomputed dense embeddings."""
-        words = text.split()
-        if not words:
+        """Splits source document into overlapping chunks preserving sentence boundaries with persistent provenance IDs and precomputed dense embeddings."""
+        raw_sentences = [s.strip() for s in re.split(r'(?<=[.!?])\\s+', text) if s.strip()]
+        if not raw_sentences:
             return
 
-        idx = 0
-        chunk_num = 0
-        while idx < len(words):
-            chunk_words = words[idx : idx + chunk_size]
-            chunk_text = " ".join(chunk_words)
+        chunks_text: List[str] = []
+        current_chunk: List[str] = []
+        current_words = 0
+
+        for sentence in raw_sentences:
+            s_words = sentence.split()
+            if current_words + len(s_words) > chunk_size and current_chunk:
+                chunks_text.append(" ".join(current_chunk))
+                # Keep overlap sentences if possible
+                overlap_words = 0
+                overlap_sentences: List[str] = []
+                for prev in reversed(current_chunk):
+                    w_count = len(prev.split())
+                    if overlap_words + w_count <= overlap:
+                        overlap_sentences.insert(0, prev)
+                        overlap_words += w_count
+                    else:
+                        break
+                current_chunk = overlap_sentences + [sentence]
+                current_words = sum(len(s.split()) for s in current_chunk)
+            else:
+                current_chunk.append(sentence)
+                current_words += len(s_words)
+
+        if current_chunk:
+            chunks_text.append(" ".join(current_chunk))
+
+        for chunk_num, chunk_text in enumerate(chunks_text):
             chunk_id = f"{re.sub(r'[^a-zA-Z0-9]', '_', source_title.lower())}_chunk_{chunk_num}"
             tokens = self._tokenize(chunk_text)
             for t in set(tokens):
@@ -125,10 +149,8 @@ class ProductionRAGAgent:
                 source_title=source_title,
                 content=chunk_text,
                 dense_vector=vector,
-                metadata={"index": chunk_num, "word_count": len(chunk_words)}
+                metadata={"index": chunk_num, "word_count": len(chunk_text.split())}
             ))
-            idx += max(1, chunk_size - overlap)
-            chunk_num += 1
 
     def _bm25_score(self, query_tokens: List[str], chunk: DocumentChunk, avg_len: float) -> float:
         """BM25 term frequency calculation."""
@@ -200,14 +222,25 @@ class ProductionRAGAgent:
         cited_ids: List[str] = []
 
         for score, chunk in scored_chunks:
-            cited_ids.append(chunk.chunk_id)
             sentences = re.split(r'(?<=[.!?]) +', chunk.content)
             for s in sentences:
                 s_tokens = set(self._tokenize(s))
                 if query_tokens.intersection(s_tokens):
                     matching_sentences.append(s.strip())
+                    if chunk.chunk_id not in cited_ids:
+                        cited_ids.append(chunk.chunk_id)
 
-        extracted_text = " ".join(matching_sentences[:3]) if matching_sentences else top_chunk.content[:200]
+        # Strict negative refusal gate: reject out-of-domain queries if no sentence overlap exists
+        if not matching_sentences:
+            return RAGAnswer(
+                query=user_query,
+                answer="No relevant documentation found matching your query in the verified knowledge base.",
+                citations=[],
+                confidence=0.0,
+                grounded=False
+            )
+
+        extracted_text = " ".join(matching_sentences[:3])
 
         covered_tokens = 0
         extracted_tokens = set(self._tokenize(extracted_text))
@@ -215,6 +248,17 @@ class ProductionRAGAgent:
             if qt in extracted_tokens:
                 covered_tokens += 1
         coverage_ratio = (covered_tokens / len(query_tokens)) if query_tokens else 0.0
+
+        # Refusal if lexical/semantic coverage is below grounded threshold
+        if coverage_ratio < 0.20:
+            return RAGAnswer(
+                query=user_query,
+                answer="Insufficient relevant facts found in the knowledge base to answer this query with confidence.",
+                citations=[],
+                confidence=0.0,
+                grounded=False
+            )
+
         calibrated_conf = round(min(0.99, max(0.1, 0.4 * top_score + 0.6 * coverage_ratio)), 2)
 
         answer_text = (
@@ -842,6 +886,24 @@ Production-grade {template['title']} built with the Universal Agency Pipeline.
 """
     with open(target_path / "README.md", "w", encoding="utf-8") as f:
         f.write(readme_content)
+
+    # 7. pyproject.toml with pythonpath set for seamless pytest execution
+    pyproject_content = f"""[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "{re.sub(r'[^a-zA-Z0-9_-]', '-', name.lower())}"
+version = "0.1.0"
+description = "{template['description']}"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+"""
+    with open(target_path / "pyproject.toml", "w", encoding="utf-8") as f:
+        f.write(pyproject_content)
 
     try:
         console.print(Panel.fit(

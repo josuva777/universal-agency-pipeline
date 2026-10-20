@@ -20,6 +20,41 @@ interface Message {
   isError?: boolean;
 }
 
+function parseDataStream(raw: string): string {
+  if (!raw) return '';
+  // 1. If valid JSON object, check for common keys
+  try {
+    const json = JSON.parse(raw);
+    if (json.error) return `Error: ${json.error}`;
+    if (typeof json.text === 'string') return json.text;
+    if (typeof json.message === 'string') return json.message;
+  } catch {}
+
+  // 2. Parse Vercel AI SDK data-stream protocol (chunks prefixed with 0:)
+  const lines = raw.split('\n');
+  let extracted = '';
+  let isDataStream = false;
+
+  for (const line of lines) {
+    if (line.startsWith('0:')) {
+      isDataStream = true;
+      try {
+        const chunk = JSON.parse(line.slice(2));
+        extracted += chunk;
+      } catch {
+        extracted += line.slice(2).replace(/^"(.*)"$/, '$1');
+      }
+    }
+  }
+
+  if (isDataStream && extracted.trim()) {
+    return extracted.trim();
+  }
+
+  // 3. Clean fallback to raw text
+  return raw.trim();
+}
+
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -66,11 +101,12 @@ export default function ChatScreen() {
       }
 
       const responseText = await response.text();
+      const parsedReply = parseDataStream(responseText);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const aiReply: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'assistant',
-        text: responseText || 'Response received from AI endpoint.',
+        text: parsedReply || 'Response received from AI endpoint.',
       };
       setMessages((prev) => [...prev, aiReply]);
     } catch (err: any) {
@@ -158,6 +194,7 @@ export default function ChatScreen() {
       {/* Input Bar */}
       <View style={styles.inputContainer}>
         <TextInput
+          testID="chat-input"
           style={styles.input}
           placeholder="Type an instruction or query..."
           placeholderTextColor="#475569"
@@ -168,6 +205,7 @@ export default function ChatScreen() {
           returnKeyType="send"
         />
         <TouchableOpacity
+          testID="send-button"
           style={[
             styles.sendButton,
             (!inputText.trim() || isLoading) && styles.sendButtonDisabled,

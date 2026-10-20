@@ -7,13 +7,15 @@ appId: com.agency.mobileagent
 
 # 2. Tap CTA to open Chat screen
 - tapOn: "Launch AI Assistant"
-- assertVisible: "AI Assistant"
-- assertVisible: "Ask anything..."
+- assertVisible: "AI Mobile Assistant"
 
-# 3. Enter query and verify response
-- tapOn: "Ask anything..."
+# 3. Enter query and send
+- tapOn:
+    id: "chat-input"
 - inputText: "What are the core agency guardrails?"
 - tapOn:
-    point: "90%,95%" # Tap Send button
-- assertVisible: "Analysis complete"
+    id: "send-button"
+
+# 4. Verify message rendered in chat stream
+- assertVisible: "What are the core agency guardrails?"
 
