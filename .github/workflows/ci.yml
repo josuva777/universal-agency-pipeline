@@ -19,9 +19,11 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install uv & Dependencies
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Dependencies
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
           uv pip install --system pyyaml pydantic pytest pytest-asyncio typer rich httpx
 
       - name: Pre-Commit Secret Scanner Audit
@@ -49,9 +51,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Install Dependencies via uv
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
           uv pip install --system pytest pytest-asyncio pydantic typer rich pyyaml httpx
 
       - name: Run Full Test Suite
@@ -76,7 +80,7 @@ jobs:
           test -f "app/chat/page.tsx" || exit 1
           test -f ".env.example" || exit 1
           test -f "app/api/chat/route.ts" || exit 1
-          npm install
+          npm ci
           npm run build
           echo "✓ Fullstack template built cleanly with zero route errors."
 

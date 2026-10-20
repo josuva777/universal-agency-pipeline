@@ -26,7 +26,7 @@ export default function HomeScreen() {
         </Canvas>
         <View style={styles.badge}>
           <Sparkles size={14} color="#06b6d4" />
-          <Text style={styles.badgeText}>AUTONOMOUS AGENT ACTIVE</Text>
+          <Text style={styles.badgeText}>EXPO SDK 52 + SKIA</Text>
         </View>
       </View>
 
@@ -34,7 +34,7 @@ export default function HomeScreen() {
       <View style={styles.textContainer}>
         <Text style={styles.headline}>INTELLIGENCE{'\n'}REDEFINED.</Text>
         <Text style={styles.subtext}>
-          Powered by edge intelligence, hybrid RAG, and sub-50ms streaming responses.
+          Turnkey mobile starter built with Expo SDK 52, 60fps Skia canvas shaders, and real-time AI backend integration.
         </Text>
       </View>
 
@@ -48,17 +48,17 @@ export default function HomeScreen() {
         <ArrowRight size={18} color="#000000" />
       </TouchableOpacity>
 
-      {/* Metrics & Features Grid */}
+      {/* Architecture & Features Grid */}
       <View style={styles.grid}>
         <View style={styles.card}>
           <Zap size={20} color="#06b6d4" />
-          <Text style={styles.cardValue}>&lt; 50ms</Text>
-          <Text style={styles.cardLabel}>Latency</Text>
+          <Text style={styles.cardValue}>Streaming</Text>
+          <Text style={styles.cardLabel}>Real-Time Backend</Text>
         </View>
         <View style={styles.card}>
           <Shield size={20} color="#6366f1" />
-          <Text style={styles.cardValue}>100%</Text>
-          <Text style={styles.cardLabel}>Zero-Leak Security</Text>
+          <Text style={styles.cardValue}>Zod Guarded</Text>
+          <Text style={styles.cardLabel}>Schema Validation</Text>
         </View>
       </View>
     </ScrollView>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#06b6d4',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -111,41 +111,39 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   headline: {
-    fontSize: 38,
+    fontSize: 36,
     fontWeight: '900',
     color: '#ffffff',
     textAlign: 'center',
     letterSpacing: -1,
-    lineHeight: 44,
+    lineHeight: 42,
+    marginBottom: 12,
   },
   subtext: {
     fontSize: 14,
     color: '#94a3b8',
     textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 20,
-    maxWidth: 300,
+    lineHeight: 22,
+    maxWidth: 280,
   },
   ctaButton: {
-    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
+    backgroundColor: '#06b6d4',
+    paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 14,
-    width: '100%',
-    gap: 10,
-    marginBottom: 32,
-    shadowColor: '#6366f1',
+    gap: 8,
+    marginBottom: 36,
+    shadowColor: '#06b6d4',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowRadius: 10,
+    elevation: 6,
   },
   ctaText: {
     color: '#000000',
-    fontWeight: '800',
+    fontWeight: '700',
     fontSize: 15,
   },
   grid: {
@@ -155,24 +153,23 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#111520',
+    borderColor: '#1e2638',
     borderWidth: 1,
-    padding: 16,
     borderRadius: 14,
-    alignItems: 'center',
-    gap: 6,
+    padding: 16,
+    alignItems: 'flex-start',
   },
   cardValue: {
     color: '#ffffff',
-    fontSize: 20,
-    fontWeight: '800',
-    marginTop: 4,
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 10,
+    marginBottom: 4,
   },
   cardLabel: {
     color: '#64748b',
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
-

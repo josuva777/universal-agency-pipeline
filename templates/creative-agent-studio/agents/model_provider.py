@@ -15,19 +15,47 @@ class ModelConfig(BaseModel):
     timeout_seconds: float = 12.0
     max_retries: int = 2
 
-# Modern Verified 2026 Model Registry
-DEFAULT_MODELS = {
-    "gemini": ModelConfig(provider="gemini", model_id="gemini-2.0-flash", timeout_seconds=12.0),
-    "groq": ModelConfig(provider="groq", model_id="llama-3.3-70b-versatile", timeout_seconds=10.0),
-    "anthropic": ModelConfig(provider="anthropic", model_id="claude-3-5-sonnet-latest", timeout_seconds=15.0),
-    "openai": ModelConfig(provider="openai", model_id="gpt-4o-mini", timeout_seconds=10.0),
-}
+# Modern Verified 2026 Model Registry with Dynamic Env Overrides
+def get_default_models(overrides: Optional[Dict[str, ModelConfig]] = None) -> Dict[str, ModelConfig]:
+    """Generates the active model registry with dynamic environment variable overrides."""
+    registry = {
+        "gemini": ModelConfig(
+            provider="gemini",
+            model_id=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+            timeout_seconds=float(os.getenv("GEMINI_TIMEOUT", "12.0")),
+        ),
+        "groq": ModelConfig(
+            provider="groq",
+            model_id=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            timeout_seconds=float(os.getenv("GROQ_TIMEOUT", "10.0")),
+        ),
+        "anthropic": ModelConfig(
+            provider="anthropic",
+            model_id=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-latest"),
+            timeout_seconds=float(os.getenv("ANTHROPIC_TIMEOUT", "15.0")),
+        ),
+        "openai": ModelConfig(
+            provider="openai",
+            model_id=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            timeout_seconds=float(os.getenv("OPENAI_TIMEOUT", "10.0")),
+        ),
+    }
+    if overrides:
+        registry.update(overrides)
+    return registry
+
+DEFAULT_MODELS = get_default_models()
 
 class CentralizedModelProvider:
     """Manages multi-provider execution with prioritized failover and exponential backoff."""
 
-    def __init__(self, priority_order: Optional[List[str]] = None):
+    def __init__(
+        self,
+        priority_order: Optional[List[str]] = None,
+        models: Optional[Dict[str, ModelConfig]] = None,
+    ):
         self.priority_order = priority_order or ["gemini", "groq", "anthropic", "openai"]
+        self.models = get_default_models(models)
 
     async def _call_gemini(self, prompt: str, config: ModelConfig) -> Optional[str]:
         api_key = os.getenv("GEMINI_API_KEY")
@@ -166,7 +194,7 @@ class CentralizedModelProvider:
         Returns: (parsed_json_dict, provider_name_used)
         """
         for provider_name in self.priority_order:
-            config = DEFAULT_MODELS.get(provider_name)
+            config = self.models.get(provider_name) or DEFAULT_MODELS.get(provider_name)
             if not config:
                 continue
 

@@ -48,17 +48,17 @@ flowchart TD
 | Component | Architecture & Purpose | Status | Verification Evidence |
 | :--- | :--- | :---: | :--- |
 | **GSD Spec Engine** | Requirements boundary contracts (`SPEC.md` $\rightarrow$ `PLAN.md`) | `Verified End-to-End` | Interactive checklist artifacts & planning gates |
-| **Ponytail Token Optimizer** | Anchor-targeted minimal surgical diffs | `Verified End-to-End` | Measured **97.3% token reduction** in `benchmarks/token_benchmark.py` |
-| **Ralph Loop Verification** | Build $\rightarrow$ Playwright/Maestro $\rightarrow$ Self-healing | `Tested` | Automated test suite in CI & local test runner |
+| **Ponytail Token Optimizer** | Anchor-targeted minimal surgical diffs | `Empirically Benchmarked` | Subword token estimation in `benchmarks/token_benchmark.py` (~86.8% avg reduction) |
+| **Ralph Loop Verification** | Build $\rightarrow$ Playwright/Maestro $\rightarrow$ Self-healing | `Integration-tested` | Automated test suite in CI & local test runner |
 | **Full-Stack App Monorepo** | Next.js 15, Streaming Chat UI, Zod validation, synthetic accounts | `Verified End-to-End` | Clean `next build` passing with zero route errors in CI |
-| **Mobile App Starter** | Expo SDK 52, Skia canvas animations, Maestro flows | `Tested` | Maestro E2E test flows & static structural verification |
-| **Agent Factory: RAG** | Token chunking, BM25 scoring, citation provenance | `Tested` | Automated unit tests in `tests/test_scaffold_agent.py` |
-| **Agent Factory: Workflow** | Deterministic state machine with JSON checkpoints | `Tested` | Automated unit tests in `tests/test_scaffold_agent.py` |
-| **Agent Factory: Action** | AST-safe expression parser, workspace sandbox boundaries | `Tested` | Automated unit tests in `tests/test_scaffold_agent.py` |
-| **Agent Factory: Copilot** | Session context management, exact token-saving cache | `Tested` | Automated unit tests in `tests/test_scaffold_agent.py` |
-| **Creative Studio Orchestrator**| Script, neural voice, SVG logo, and Remotion video props | `Tested` | Multi-model 2026 failover & truth-in-marketing baseline |
-| **Credential Gatekeeper** | Pre-commit regex scanner for API keys and `.env` files | `Verified End-to-End` | 0 secrets verified in `.agents/secret_scan.py` & CI |
-| **CI / CD Pipeline** | GitHub Actions multi-OS (Linux, macOS, Windows) test matrix | `Verified End-to-End` | `.github/workflows/ci.yml` running unit & build checks |
+| **Mobile App Starter** | Expo SDK 52, Skia canvas animations, dynamic backend chat API, Maestro flows | `Integration-tested` | Maestro flows, verified routes & real API integration |
+| **Agent Factory: RAG** | Token chunking, BM25 scoring, citation provenance | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Agent Factory: Workflow** | Deterministic state machine with JSON checkpoints | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Agent Factory: Action** | AST-safe expression parser, workspace sandbox boundaries | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Agent Factory: Copilot** | Session context management, exact token-saving cache | `Starter Framework (Unit-tested)` | Automated generator & runtime tests in `tests/test_scaffold_agent.py` |
+| **Creative Studio Orchestrator**| Script, neural voice, SVG logo, and Remotion 4K/1080p video props | `Integration-tested` | 4K & 1080p compositions, multi-provider failover unit tests in `tests/test_model_provider.py` |
+| **Credential Gatekeeper** | Pre-commit regex scanner for API keys and `.env` files | `Verified End-to-End` | 0 secrets verified across code & tests in `.agents/secret_scan.py` & CI |
+| **CI / CD Pipeline** | GitHub Actions multi-OS (Linux, macOS, Windows) test matrix | `Verified End-to-End` | `.github/workflows/ci.yml` running unit & build checks via `astral-sh/setup-uv@v5` |
 
 ---
 
@@ -70,12 +70,12 @@ You never have to run complicated terminal scripts. Simply talk to your AI agent
 | :--- | :--- | :--- |
 | **New Web/Mobile App** | `scaffold workspace` | Configures isolated dev MCPs, sub-50ms Biome auto-formatting, and tests. |
 | **Build Any AI Agent** | `create agent for [description]` | Scans PC hardware, classifies archetype (RAG/Workflow/Action/Copilot), generates `AGENT_SPEC.md`, Pydantic/Zod schemas, and Langfuse tracing. |
-| **Render 4K Video & Brand** | `create video for [brief]` | Runs AI Director, synthesizes neural voice, detects Veo AI / custom b-roll, renders 4K Remotion commercial, and exports straight to 5TB Google Drive. |
-| **All-in-One Product Launch** | `build full app for [description]` | Builds the Next.js full-stack app, embeds the streaming agent in `/api/chat`, and puts both marketing & demo videos in `creative/`! |
+| **Render 4K Video & Brand** | `create video for [brief]` | Runs AI Director, synthesizes neural voice, detects Veo AI / custom b-roll, renders Remotion commercial (1080p or native 4K UHD), and exports to local or cloud storage. |
+| **All-in-One Product Launch** | `build full app for [description]` | Builds the Next.js full-stack app, embeds the streaming agent in `/api/chat`, and puts marketing assets in `creative/`! |
 
 ---
 
-## 🛡️ Multi-Model Automatic Failover (Zero-Crash Guarantee)
+## 🛡️ Multi-Model Automatic Failover with Bounded Retries
 
 To ensure your agency runs continuously even when cloud APIs encounter rate limits or outages, our orchestration engine features a 4-tier automatic failover waterfall:
 
@@ -133,18 +133,18 @@ client-turnkey-project/
 
 ---
 
-## 🛡️ Zero-Freeze Hardware Scanner (`system_scanner.py`)
-To prevent heavy AI models from freezing laptops with 8GB RAM, our built-in hardware scanner audits your CPU, RAM, and GPU:
-- **Tier 1 (Light / $\le$ 12GB RAM, iGPU)**: Automatically restricts local models to lightweight 1B–3B weights (Llama-3.2-1B, Qwen2.5-Coder-1.5B, Kokoro 82M) and routes heavy reasoning to **Google Gemini Cloud APIs (0 MB local storage used)**.
+## 🛡️ Adaptive Hardware Profiler (`system_scanner.py`)
+To prevent heavy AI models from freezing systems with limited RAM, our built-in hardware scanner audits CPU, RAM, and GPU capabilities:
+- **Tier 1 (Light / $\le$ 12GB RAM, iGPU)**: Automatically restricts local models to lightweight 1B–3B weights (Llama-3.2-1B, Qwen2.5-Coder-1.5B, Kokoro 82M) and routes heavy reasoning to **Google Gemini or other Cloud APIs**.
 - **Tier 2 (Mid / 16–24GB RAM, 6–8GB VRAM)**: Enables 7B–8B quantized models (Q4_K_M).
 - **Tier 3 (Heavy / $\ge$ 32GB RAM, 12GB+ VRAM)**: Enables 14B–32B local inference.
 
 ---
 
-## ☁️ Zero-Bloat Cloud Storage: Google Drive 5TB & Google Cloud
-- **5 TB Google Drive (`G:\My Drive\Agency Deliverables`)**: All rendered 4K commercial videos, audio masters, and brand portals automatically sync to your Google Drive. Zero C: drive space consumed!
+## ☁️ Cloud & Local Storage Architecture
+- **Google Drive / Local Sync (`studio.ps1`)**: Rendered commercial videos, audio masters, and brand assets can sync directly to your configured cloud storage path or local project output folder.
 - **Google Cloud Storage (`gcs_uploader.py`)**: Direct bucket upload with public streaming URLs.
-- **MemPalace Long-Term Memory**: All uploaded asset URLs are permanently remembered in local vector drawers (344 drawers active) so you can ask for them anytime in any session.
+- **MemPalace Long-Term Memory**: All uploaded asset references can be remembered in local vector drawers for cross-session recall.
 
 ---
 
@@ -248,7 +248,7 @@ The repository includes a comprehensive, multi-layered test and verification sui
 
 ---
 
-## 🔒 Zero-Leak Security Discipline
+## 🔒 Pre-Commit Credential Leak Prevention & Zero-Leak Discipline
 - **NEVER** stages `.env`, `.env.local`, API tokens, or credentials.
 - Multi-layer `.gitignore` protects credentials, model weights, and media temp files.
 - Automated secret-scanning audit before commits.
