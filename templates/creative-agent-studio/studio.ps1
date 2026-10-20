@@ -6,15 +6,30 @@
 Clear-Host
 $scriptDir = $PSScriptRoot
 
-# Dynamically resolve Python runtime
-$pythonBin = if (Test-Path "$scriptDir\.venv\Scripts\python.exe") {
-    "$scriptDir\.venv\Scripts\python.exe"
-} elseif (Get-Command uv -ErrorAction SilentlyContinue) {
-    "uv run python"
-} elseif (Get-Command python -ErrorAction SilentlyContinue) {
-    "python"
-} else {
-    "python3"
+# Safe Python invocation helper function
+function Invoke-PythonCommand {
+    param([string[]]$ArgsList)
+    if (Test-Path "$scriptDir\.venv\Scripts\python.exe") {
+        & "$scriptDir\.venv\Scripts\python.exe" @ArgsList
+    } elseif (Get-Command uv -ErrorAction SilentlyContinue) {
+        & uv run python @ArgsList
+    } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+        & python @ArgsList
+    } else {
+        & python3 @ArgsList
+    }
+}
+
+# Secure masked input helper function
+function Read-MaskedSecret {
+    param([string]$Prompt)
+    Write-Host "$Prompt (masked): " -ForegroundColor Cyan
+    $sec = Read-Host -AsSecureString
+    if (-not $sec) { return "" }
+    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec)
+    $plain = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    return $plain.Trim()
 }
 
 # Dynamically resolve Agent Scaffolder script
@@ -47,7 +62,7 @@ Write-Host "  [5] Scaffold New AI Client Agent (Agent Factory)" -ForegroundColor
 Write-Host "      (Hybrid RAG, Workflow State Machine, Autonomous ReAct, or Copilot)"
 Write-Host ""
 Write-Host "  [6] Set / Update API Keys Securely" -ForegroundColor Green
-Write-Host "      (Stored ONLY on your laptop in .env - NEVER pushed to GitHub)"
+Write-Host "      (Masked input, stored ONLY on your laptop in .env - NEVER pushed to GitHub)"
 Write-Host ""
 Write-Host "  [0] Exit" -ForegroundColor Gray
 Write-Host ""
@@ -73,7 +88,7 @@ switch ($choice) {
         $out = "$scriptDir/assets/outputs/$slug"
 
         Write-Host "`n🚀 Step 1: Running AI Producer (Script + Voiceover + Logo + Sound FX)..." -ForegroundColor Cyan
-        & $pythonBin -m agents.orchestrator --brief "$brief" --output "$out" --style "$style"
+        Invoke-PythonCommand @("-m", "agents.orchestrator", "--brief", "$brief", "--output", "$out", "--style", "$style")
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error: AI Producer encountered an error (Exit code $LASTEXITCODE)." -ForegroundColor Red
         } else {
@@ -136,7 +151,7 @@ switch ($choice) {
         }
         $outputDir = if ($env:AGENCY_WORKSPACE_PATH) { $env:AGENCY_WORKSPACE_PATH } else { "$scriptDir/agents_output" }
         Write-Host "`n🏭 Scaffolding AI Agent to: $outputDir..." -ForegroundColor Cyan
-        & $pythonBin "$scaffolderScript" --name "$name" --archetype "$archetype" --output-dir "$outputDir"
+        Invoke-PythonCommand @("$scaffolderScript", "--name", "$name", "--archetype", "$archetype", "--output-dir", "$outputDir")
         if ($LASTEXITCODE -eq 0) {
             Write-Host "`n✓ Agent scaffolded successfully in: $outputDir" -ForegroundColor Green
         } else {
@@ -145,11 +160,11 @@ switch ($choice) {
     }
     "6" {
         Write-Host "`n🔑 Secure Local API Key Manager" -ForegroundColor Cyan
-        Write-Host "Keys are saved ONLY in local .env (protected by .gitignore - NEVER uploaded to GitHub)" -ForegroundColor Gray
+        Write-Host "Keys are masked on input and saved ONLY in local .env (protected by .gitignore)" -ForegroundColor Gray
         Write-Host ""
-        $gemini = Read-Host "Enter Google Gemini API Key (press Enter to skip)"
-        $groq = Read-Host "Enter Groq API Key (press Enter to skip)"
-        $openai = Read-Host "Enter OpenAI API Key (press Enter to skip)"
+        $gemini = Read-MaskedSecret "Enter Google Gemini API Key (press Enter to skip)"
+        $groq = Read-MaskedSecret "Enter Groq API Key (press Enter to skip)"
+        $openai = Read-MaskedSecret "Enter OpenAI API Key (press Enter to skip)"
 
         $envFile = "$scriptDir\.env"
         if (-not (Test-Path $envFile)) {

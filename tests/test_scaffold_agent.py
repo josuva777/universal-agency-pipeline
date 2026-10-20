@@ -47,3 +47,4 @@ def test_scaffolded_agent_tests_pass(tmp_path, archetype):
         text=True
     )
     assert res.returncode == 0, f"Generated test failed for {archetype}:\nSTDOUT: {res.stdout}\nSTDERR: {res.stderr}"
+

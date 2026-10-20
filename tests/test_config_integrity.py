@@ -54,3 +54,4 @@ def test_required_repo_structure():
     for rel_path in required_paths:
         target = REPO_ROOT / rel_path
         assert target.exists(), f"Critical required repository file missing: {rel_path}"
+

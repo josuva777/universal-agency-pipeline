@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Pre-Commit Secret Scanner & Credential Leak Prevention Gatekeeper.
 Scans staged files and workspace for exposed API keys, tokens, and private credentials.
+Includes tests directory while maintaining zero false positives on documented placeholders.
 """
 
 import os
@@ -34,14 +35,15 @@ SECRET_PATTERNS = [
     (r'mongodb(?:\+srv)?://[a-zA-Z0-9_-]+:[^@\s]+@', "MongoDB Connection String with Password"),
 ]
 
-# Paths and extensions to ignore
+# Only ignore build artifacts, vendor directories, bytecode, and version control
 IGNORED_PATTERNS = [
     r'\.git[\\/]',
     r'node_modules[\\/]',
     r'\.venv[\\/]',
     r'dist[\\/]',
     r'\.next[\\/]',
-    r'tests[\\/]',
+    r'__pycache__[\\/]',
+    r'\.pyc$',
     r'\.env\.example$',
     r'package-lock\.json$',
 ]
@@ -52,6 +54,17 @@ def is_ignored(file_path: str) -> bool:
             return True
     return False
 
+def is_placeholder_match(match_text: str) -> bool:
+    """Verifies whether the matched token itself is a documented placeholder."""
+    lower = match_text.lower()
+    return (
+        "your_" in lower
+        or "example" in lower
+        or "placeholder" in lower
+        or "dummy" in lower
+        or "<token>" in lower
+    )
+
 def scan_file(file_path: Path) -> list[dict]:
     findings = []
     try:
@@ -60,15 +73,14 @@ def scan_file(file_path: Path) -> list[dict]:
         return findings
 
     for line_num, line in enumerate(content.splitlines(), start=1):
-        # Ignore comments in example files or documentation placeholders
-        if "your_" in line.lower() or "example" in line.lower() or "dummy" in line.lower() or "<token>" in line.lower():
-            continue
-
         for regex, desc in SECRET_PATTERNS:
             matches = re.finditer(regex, line)
             for m in matches:
                 matched_val = m.group(0)
-                # Mask secret
+                # Check the matched token itself, not the entire line
+                if is_placeholder_match(matched_val):
+                    continue
+
                 masked = matched_val[:4] + "*" * (len(matched_val) - 8) + matched_val[-4:] if len(matched_val) > 8 else "***"
                 findings.append({
                     "file": str(file_path),
@@ -95,9 +107,7 @@ def get_staged_or_all_files(target_dir: str = ".") -> list[Path]:
     except Exception:
         pass
 
-    # Fallback: scan workspace files
     for root, dirs, filenames in os.walk(target_dir):
-        # Prune ignored directories
         dirs[:] = [d for d in dirs if not is_ignored(d)]
         for fn in filenames:
             p = Path(root) / fn
@@ -111,7 +121,6 @@ def main():
 
     all_findings = []
     for f in files_to_scan:
-        # Check if actual .env is staged
         if f.name == ".env" or f.name.endswith(".env.local"):
             all_findings.append({
                 "file": str(f),
@@ -125,14 +134,14 @@ def main():
         all_findings.extend(findings)
 
     if all_findings:
-        print("\n❌ [CRITICAL SECURITY GATEKEEPER] Secrets or Credentials Detected!")
+        print("\n[CRITICAL SECURITY GATEKEEPER] Secrets or Credentials Detected!")
         print("Commit or deployment blocked to prevent credential leakage:\n")
         for finding in all_findings:
-            print(f"  • {finding['file']}:{finding['line']} - [{finding['type']}] -> {finding['masked']}")
+            print(f"  * {finding['file']}:{finding['line']} - [{finding['type']}] -> {finding['masked']}")
         print("\nPlease remove real API keys, place them in .env (ignored), and use environment variables.")
         sys.exit(1)
     else:
-        print("✓ [Security Gatekeeper] Clean: 0 secrets or sensitive credentials detected.")
+        print("[Security Gatekeeper] Clean: 0 secrets or sensitive credentials detected.")
         sys.exit(0)
 
 if __name__ == "__main__":

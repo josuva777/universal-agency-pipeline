@@ -23,3 +23,4 @@ def test_hardware_scan_returns_valid_profile():
 def test_scanner_display_report_does_not_crash():
     profile = SystemScanner.display_report(str(REPO_ROOT))
     assert profile is not None
+

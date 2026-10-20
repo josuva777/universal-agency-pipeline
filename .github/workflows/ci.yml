@@ -59,7 +59,7 @@ jobs:
           pytest tests/ -v
 
   templates-verification:
-    name: 📦 Full-Stack & Mobile Template Verification
+    name: 📦 Full-Stack & Mobile Template Build Verification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -69,19 +69,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: 'npm'
-          cache-dependency-path: 'templates/fullstack-agent-app/package.json'
 
-      - name: Verify Full-Stack App Structure
+      - name: Verify Full-Stack App Build
+        working-directory: templates/fullstack-agent-app
         run: |
-          test -f templates/fullstack-agent-app/app/chat/page.tsx || exit 1
-          test -f templates/fullstack-agent-app/.env.example || exit 1
-          test -f templates/fullstack-agent-app/app/api/chat/route.ts || exit 1
-          echo "✓ All fullstack template routes and environment templates present."
+          test -f "app/chat/page.tsx" || exit 1
+          test -f ".env.example" || exit 1
+          test -f "app/api/chat/route.ts" || exit 1
+          npm install
+          npm run build
+          echo "✓ Fullstack template built cleanly with zero route errors."
 
-      - name: Verify Mobile App Structure
+      - name: Verify Mobile App Structure & Config
+        working-directory: templates/mobile-agent-app
         run: |
-          test -f templates/mobile-agent-app/package.json || exit 1
-          test -f templates/mobile-agent-app/.maestro/flows/chat.yaml || exit 1
-          test -f templates/mobile-agent-app/app/(tabs)/chat.tsx || exit 1
-          echo "✓ All mobile template routes and Maestro flows present."
+          test -f "package.json" || exit 1
+          test -f ".maestro/flows/chat.yaml" || exit 1
+          test -f "app/(tabs)/chat.tsx" || exit 1
+          test -f "app/(tabs)/index.tsx" || exit 1
+          echo "✓ All mobile template routes and Maestro flows verified."

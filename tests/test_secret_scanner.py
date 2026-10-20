@@ -1,6 +1,5 @@
 """Automated Unit Tests for Pre-Commit Secret Scanner."""
 import sys
-import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -10,7 +9,9 @@ import secret_scan
 
 def test_secret_scanner_detects_openai_key(tmp_path):
     leaky_file = tmp_path / "leaky_code.py"
-    leaky_file.write_text("api_key = 'sk-proj-abc1234567890123456789012345678901234567890'")
+    # Construct dynamically to avoid static scanner false positives in test source
+    fake_token = "sk-" + "proj-" + ("A" * 32)
+    leaky_file.write_text(f"api_key = '{fake_token}'")
     findings = secret_scan.scan_file(leaky_file)
     assert len(findings) == 1
     assert findings[0]["type"] == "OpenAI API Key"
@@ -18,7 +19,8 @@ def test_secret_scanner_detects_openai_key(tmp_path):
 
 def test_secret_scanner_detects_github_pat(tmp_path):
     leaky_file = tmp_path / "token.txt"
-    leaky_file.write_text("ghp_123456789012345678901234567890123456")
+    fake_token = "ghp_" + ("1" * 36)
+    leaky_file.write_text(f"token = '{fake_token}'")
     findings = secret_scan.scan_file(leaky_file)
     assert len(findings) == 1
     assert findings[0]["type"] == "GitHub Personal Access Token"
