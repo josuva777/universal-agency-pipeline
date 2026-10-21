@@ -70,3 +70,13 @@ Every active MCP server injects its tool definitions into the prompt on every me
 5. Update `CHANGELOG.md` following KeepAChangelog.
 6. Generate a client-facing **Delivery Brief** (`handover.md`).
 7. File high-signal architectural decisions (ADRs) into **MemPalace**.
+
+---
+
+## 5. Non-Negotiable Enterprise Guardrails (All Client Projects)
+1. **Anti-Slop Multi-Palette Mandate:** All frontends must provide an integrated multi-theme engine (minimum 3–5 distinct palettes: e.g. Cyberpunk Matrix, Swiss Bauhaus, Avionics Amber, Oceanic Cobalt, Lockdown Crimson) with live switching. Never default to generic AI purple/orange dark-mode. Include 60fps canvas particle meshes and physics-based spring animations (`motion/react`).
+2. **Real AI Subsystem Mandate (Zero Mock Fakes):** Never stub requested AI agents or RAG with hardcoded string checks. Always implement real RAG (vector chunking & cosine similarity retrieval with OWASP/NIST citations), real supervised training/fine-tuning scripts with loss metrics, and pure-Python mathematical vector fallbacks to prevent Windows Application Control DLL load blocks.
+3. **Product-Demonstration Commercial Video Standard:** Commercial videos must never be static text slideshows. They must showcase 2.5D device mockups (laptops, smartphones) rendering the actual web console and mobile interfaces in action, animated packet interception flows, and audio sound design.
+4. **Native Mobile Export Standard:** Cross-platform mobile projects (Expo/React Native) must execute `npx expo prebuild` and generate native `android/` projects with auto-configured `local.properties` pointing to the local Android SDK.
+5. **Console Usability & Admin Operations Standard:** Operational dashboards must include an interactive User Guidance Tour (onboarding checklist with progressive milestones) and a dedicated Enterprise Admin Center with emergency kill-switch controls, master token management, and organization RBAC.
+6. **Mandatory End-to-End Functional & Security Dogfooding Audit:** Before declaring any project complete, click-test all buttons, navigation tabs, modal popups, and theme selectors to ensure zero dead clicks, and verify all backend routes and security boundaries.
