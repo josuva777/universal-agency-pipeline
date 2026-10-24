@@ -92,3 +92,20 @@ Every active MCP server injects its tool definitions into the prompt on every me
    - Header navigation links (`Docs & API`, `About Us`, `Architecture`, `Simulator`, `Pricing`) MUST be styled with `whitespace-nowrap` to prevent awkward multi-line word wrapping and disjointed spacing across all responsive breakpoints.
    - Never clutter the navigation bar or hero CTA row with standalone `.apk` or `.bat` download buttons.
    - Consolidate all desktop and mobile downloads (Progressive Web App, Windows `.bat` Launcher, Android `web.apk`, and Android `mobile.apk`) into a single, cohesive `Desktop & Mobile App` modal triggered from header actions, ensuring a clean hero and uncluttered navbar.
+11. **Bespoke Brand Identity & Automated Asset Generation Mandate:**
+   - Every enterprise project built must automatically synthesize bespoke, project-specific visual identity assets (high-resolution SVG/PNG emblem, horizontal wordmark logo, square rounded app icon, and favicon) tailored specifically to the project's domain, theme palette, and naming.
+   - Forbid generic placeholder icons (e.g. default generic Lucide shield/box) on primary brand touchpoints.
+   - Brand assets must be systematically integrated across:
+     a) Website navigation header and mobile header (`Navbar.tsx`, `layout.tsx`).
+     b) Landing page Hero centerpiece or emblem showcase (`page.tsx`).
+     c) Dashboard sidebar header and user profile (`dashboard/layout.tsx`).
+     d) PWA manifest, favicons, and touch icons (`manifest.json`, `favicon.ico`, `icon.png`).
+     e) Mobile application icon and splash assets (`mobile/assets/icon.png`, `adaptive-icon.png`, Android `res/mipmap`).
+     f) Desktop launchers and app installation modals.
+   - When the user supplies a custom logo sheet or brand image, the agent must autonomously crop, optimize (lossless bicubic / vector conversion), and propagate the assets to all web, mobile, and desktop touchpoints, immediately updating and re-signing APK releases.
+12. **Next-Generation Cinematic Commercial Video & Motion Standard:**
+   - Commercial promotional videos must deliver high-fidelity broadcast production value:
+     a) Full 3D canvas viewport rendering (Three.js / React Three Fiber / Remotion) showcasing photorealistic device mockups (ultrabook laptop, modern smartphone) executing real software interfaces in real-time.
+     b) Multi-track Foley and electronic music sound design: dynamic sidechain audio ducking under professional neural voiceover, precision-synced interface whooshes, biometric audit scans, cryptographic confirmation chimes, and deep sub-bass impacts.
+     c) Kinetic typography and high-velocity split-screen terminal logs illustrating intercepted malicious payloads and deterministic policy decisions.
+     d) Export rendered video (`.mp4`, 1080p60) to project root, web public directory (`/web/public/`), and embed within an interactive video showcase on the landing page with zero buffering.
