@@ -111,11 +111,16 @@ Every active MCP server injects its tool definitions into the prompt on every me
      d) Export rendered video (`.mp4`, 1080p60) to project root, web public directory (`/web/public/`), and embed within an interactive video showcase on the landing page with zero buffering.
 13. **Viral Social Media Video & Narrative Tech Storytelling Standard:**
    - In addition to landscape commercials, every client deliverable must generate high-retention 9:16 Vertical video formats (1080x1920, 60fps) tailored for TikTok, Instagram Reels, and YouTube Shorts to maximize organic reach and views.
+   - **Strict Platform Separation Mandate:** The public website landing page strictly embeds the **16:9 Landscape Broadcast Commercial** (`sentinelops_commercial.mp4`). Vertical 9:16 reels are strictly delivered as external social distribution assets (`releases/social/` and desktop) for publishing to TikTok, Instagram, and YouTube Shorts, and MUST NOT be embedded directly onto the website landing page.
    - Employ viral narrative structure: 0–3s dopamine hook ("An autonomous AI agent just tried to..."), 3–15s visual problem escalation (3D mobile zoom + terminal payload leaks), 15–24s deterministic guardrail climax, and 24–30s punchy brand CTA.
    - Enforce center-screen dynamic word-by-word karaoke captions with spring pop-ins (`scale: 1.18`) and vibrant keyword highlights (`#facc15` neon yellow / `#10b981` cyber emerald) synchronized with real millisecond word timestamps.
    - Master 5-track cinematic audio: professional neural voiceover, tension sub-drone, heartbeat impacts, laser gate alerts, and dynamic sidechain ducking (-14 LUFS EBU R128).
-14. **Super-Design & Tactile Frontend Interaction Standard:**
-   - Frontends must feel physical and alive using Emil Kowalski's interaction laws: spring physics (`stiffness: 400, damping: 30`) over linear transitions, active tap depressions (`whileTap={{ scale: 0.97 }}`), layout morphing (`layoutId`), and zero dead clicks (<16ms feedback).
-   - Implement buttery smooth momentum scrolling via Lenis to eliminate clunky browser wheel jumps.
-   - Integrate modern design-engineering component craft (React Bits & 21st.dev): decrypted text scrambles, spotlight border tracking, and subtle 1px animated gradient borders on critical threat cards.
-   - Enforce strict Anti-AI-Slop writing: forbid generic corporate marketing buzzwords ("unleash", "synergy", "in today's fast-paced world"); enforce direct, cynical, engineer-grade clarity.
+14. **Super-Design & Tactile Frontend Interaction Standard (The 15 Superpowers):**
+   - Frontends must feel physical and alive using the full 15-skill stack: **Skills.sh** standards, **Emil Kowalski’s** spring physics (`stiffness: 400, damping: 30`), active tap depressions (`whileTap={{ scale: 0.97 }}`), layout morphing (`layoutId`), and zero dead clicks (<16ms feedback).
+   - Enforce **Impeccable** mathematical 4px/8px optical rhythm and **Awesome Designs** deep contrast dark mode palettes.
+   - Implement **Three.js (Image 23js)** photorealistic 3D hardware viewports and **GSAP** timeline choreography.
+   - Integrate **Transitions.dev** View Transitions API for fluid page routing, and **Make Interfaces Feel Better** tactile micro-feedback.
+   - Design **Better Icons** (bespoke geometric SVG marks, zero generic icon stubs).
+   - Implement buttery smooth momentum scrolling via **Lenis** to eliminate clunky browser wheel jumps.
+   - Integrate modern design-engineering craft from **React Bits** (decrypted text scrambles, spotlight border tracking, magnetic buttons) and **21st.dev** component patterns, staged with **Draftly**.
+   - Enforce strict **Anti-AI-Slop Writing & No AI Slop**: forbid generic corporate marketing buzzwords ("unleash", "synergy", "in today's fast-paced world"); enforce direct, cynical, engineer-grade clarity.
