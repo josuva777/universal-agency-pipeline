@@ -109,3 +109,13 @@ Every active MCP server injects its tool definitions into the prompt on every me
      b) Multi-track Foley and electronic music sound design: dynamic sidechain audio ducking under professional neural voiceover, precision-synced interface whooshes, biometric audit scans, cryptographic confirmation chimes, and deep sub-bass impacts.
      c) Kinetic typography and high-velocity split-screen terminal logs illustrating intercepted malicious payloads and deterministic policy decisions.
      d) Export rendered video (`.mp4`, 1080p60) to project root, web public directory (`/web/public/`), and embed within an interactive video showcase on the landing page with zero buffering.
+13. **Viral Social Media Video & Narrative Tech Storytelling Standard:**
+   - In addition to landscape commercials, every client deliverable must generate high-retention 9:16 Vertical video formats (1080x1920, 60fps) tailored for TikTok, Instagram Reels, and YouTube Shorts to maximize organic reach and views.
+   - Employ viral narrative structure: 0–3s dopamine hook ("An autonomous AI agent just tried to..."), 3–15s visual problem escalation (3D mobile zoom + terminal payload leaks), 15–24s deterministic guardrail climax, and 24–30s punchy brand CTA.
+   - Enforce center-screen dynamic word-by-word karaoke captions with spring pop-ins (`scale: 1.18`) and vibrant keyword highlights (`#facc15` neon yellow / `#10b981` cyber emerald) synchronized with real millisecond word timestamps.
+   - Master 5-track cinematic audio: professional neural voiceover, tension sub-drone, heartbeat impacts, laser gate alerts, and dynamic sidechain ducking (-14 LUFS EBU R128).
+14. **Super-Design & Tactile Frontend Interaction Standard:**
+   - Frontends must feel physical and alive using Emil Kowalski's interaction laws: spring physics (`stiffness: 400, damping: 30`) over linear transitions, active tap depressions (`whileTap={{ scale: 0.97 }}`), layout morphing (`layoutId`), and zero dead clicks (<16ms feedback).
+   - Implement buttery smooth momentum scrolling via Lenis to eliminate clunky browser wheel jumps.
+   - Integrate modern design-engineering component craft (React Bits & 21st.dev): decrypted text scrambles, spotlight border tracking, and subtle 1px animated gradient borders on critical threat cards.
+   - Enforce strict Anti-AI-Slop writing: forbid generic corporate marketing buzzwords ("unleash", "synergy", "in today's fast-paced world"); enforce direct, cynical, engineer-grade clarity.
