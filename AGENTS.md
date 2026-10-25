@@ -124,12 +124,11 @@ Every active MCP server injects its tool definitions into the prompt on every me
    - Implement buttery smooth momentum scrolling via **Lenis** to eliminate clunky browser wheel jumps.
    - Integrate modern design-engineering craft from **React Bits** (decrypted text scrambles, spotlight border tracking, magnetic buttons) and **21st.dev** component patterns, staged with **Draftly**.
    - Enforce strict **Anti-AI-Slop Writing & No AI Slop**: forbid generic corporate marketing buzzwords ("unleash", "synergy", "in today's fast-paced world"); enforce direct, cynical, engineer-grade clarity.
-15. **Omnichannel Authentication & 6-Digit Email OTP Verification Standard (Zero-Leak Sybil Defense):**
-   - Provide multi-method authentication: Work email + 6-digit cryptographic OTP (10m TTL, 60s countdown, rate limited). Anti-Sybil filters strictly block disposable/temporary domains.
-   - Include a built-in Enterprise Inbox Simulator in local development mode (`dev_otp`) with a 1-click "Auto-fill & Verify OTP" drawer for instant, frictionless developer and QA testing without leaving the browser tab.
-   - Provide Omnichannel One-Tap SSO: Google Workspace account chooser modal, GitHub Developer SSO, Enterprise SAML (Okta/Azure AD), and Passkey / Windows Hello (FIDO2 WebAuthn).
-   - First-time OTP users finalize setup by configuring custom salted passwords and organization profiles.
-   - Absolute Master Admin exclusivity: reserved email/passwords (`josuva732006@gmail.com`) receive Super Admin status and static master OTP fallback (`732006`); all other users default strictly to `DEVELOPER`.
+15. **Omnichannel Authentication & 6-Digit Email OTP Verification Standard (Zero-Leak, Zero-Fake Mandate):**
+   - Provide clean, production-grade multi-method authentication: Work email + 6-digit cryptographic OTP (10m TTL, 60s countdown, rate limited). Anti-Sybil filters strictly block disposable/temporary domains.
+   - **Zero Fake / Zero Mock Mandate**: Forbid simulated dev drawers, autofill testing buttons, cheesy demo shortcuts, or fake account chooser modals on the UI. Real users enter their email, receive their code in their real inbox via live SMTP, and manually enter the 6 digits. Never leak the OTP code over network JSON responses to the browser.
+   - **Real Omnichannel SSO**: Provide standard, production-ready "Continue with Google" and "Continue with GitHub" OAuth buttons that redirect to official authorization endpoints (`accounts.google.com` and `github.com/login/oauth/authorize`), handled by dedicated OAuth callback routes (`/auth/callback`).
+   - **Seamless Master Admin Exclusivity**: The Supreme Master Admin (`josuva732006@gmail.com`) logs in through the exact same standard login inputs as every other user (no separate "Master Login" tabs or demo badges). Super Admin role, enterprise tier, and fleet controls are resolved server-side based on verified identity.
 16. **Enterprise Stripe Payment Gateway & Cryptographic Financial Ledger Standard:**
    - Dual-mode billing architecture: real Stripe API or deterministic cryptographic fallback simulator with instant checkout URL generation (`cs_test_...`) and zero real card costs.
    - Automated tenant provisioning: purchases atomically upgrade tenant tiers (`TEAM` / `ENTERPRISE`) and expand quota to 1,000,000+ monthly calls in persistent SQLite storage.
