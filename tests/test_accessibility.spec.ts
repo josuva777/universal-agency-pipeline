@@ -32,3 +32,4 @@ test.describe('WCAG 2.2 AA Compliance Gate', () => {
     }
   });
 });
+

@@ -122,3 +122,4 @@ test.describe('WCAG 2.2 AA Automated Accessibility Suite', () => {
      - `margin-inline-start` instead of `margin-left`
      - `padding-inline-end` instead of `padding-right`
    - Ensure the root HTML tag reflects the active document language: `<html lang="en" dir="ltr">`.
+

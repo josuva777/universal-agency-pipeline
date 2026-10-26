@@ -143,3 +143,4 @@ Keep initial JavaScript bundle sizes strictly below **100 kB (gzipped)** per pag
     loading: () => <div className="h-96 w-full animate-pulse bg-slate-900 rounded-xl" />,
   });
   ```
+

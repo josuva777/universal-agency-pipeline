@@ -157,3 +157,4 @@ Instead of paging on every single transient 500 spike, alert on how fast the err
 - **P1 Critical Page (Wake up engineer)**: 2% of 30-day budget consumed within 1 hour (14.4x burn rate).
 - **P2 High Alert (Check during business hours)**: 5% of budget consumed within 6 hours (6x burn rate).
 - **P3 Low Ticket (Jira/Linear backlog)**: 10% of budget consumed over 3 days (1x burn rate).
+

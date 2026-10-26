@@ -31,3 +31,4 @@ export type UserDTO = z.infer<typeof UserSchema>;
 export type OTPSendRequest = z.infer<typeof OTPSendRequestSchema>;
 export type OTPVerifyRequest = z.infer<typeof OTPVerifyRequestSchema>;
 export type OTPFinalizeRequest = z.infer<typeof OTPFinalizeRequestSchema>;
+

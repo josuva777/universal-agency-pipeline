@@ -22,3 +22,4 @@ test.describe('Visual Regression Multi-Viewport Audit', () => {
     });
   }
 });
+

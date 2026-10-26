@@ -168,3 +168,4 @@ def generate_release_manifest(release_dir: str, version: str) -> dict:
         
     return manifest
 ```
+
