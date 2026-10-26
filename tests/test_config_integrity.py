@@ -58,8 +58,50 @@ def test_required_repo_structure():
         "templates/monorepo-saas/turbo.json",
         "templates/monorepo-saas/pnpm-workspace.yaml",
         "templates/monorepo-saas/package.json",
+        "tests/promptfoo.yaml",
+        ".github/workflows/release.yml",
+        "mempalace.yaml",
+        "entities.json",
+        "pipeline/cli.py",
     ]
     for rel_path in required_paths:
         target = REPO_ROOT / rel_path
         assert target.exists(), f"Critical required repository file missing: {rel_path}"
+
+def test_promptfoo_configuration():
+    """Verifies that promptfoo.yaml has OWASP LLM01-LLM10 test cases."""
+    pf = REPO_ROOT / "tests" / "promptfoo.yaml"
+    assert pf.exists()
+    content = yaml.safe_load(pf.read_text(encoding="utf-8"))
+    assert "prompts" in content
+    assert "providers" in content
+    assert "tests" in content
+    assert len(content["tests"]) >= 50, f"Expected 50+ adversarial tests, found {len(content['tests'])}"
+
+def test_mempalace_structure():
+    """Verifies mempalace.yaml rooms and entities.json knowledge graph seeds."""
+    mp = REPO_ROOT / "mempalace.yaml"
+    assert mp.exists()
+    mp_data = yaml.safe_load(mp.read_text(encoding="utf-8"))
+    assert mp_data.get("wing") == "universal_agency_pipeline"
+    room_names = [r["name"] for r in mp_data.get("rooms", [])]
+    expected_rooms = [
+        "enterprise_guardrails",
+        "architecture_and_monorepo",
+        "security_and_auth",
+        "creative_studio_video",
+        "observability_and_performance",
+        "skills_and_tooling",
+        "adrs_and_decisions",
+    ]
+    for er in expected_rooms:
+        assert er in room_names, f"Missing room in mempalace.yaml: {er}"
+
+    ent = REPO_ROOT / "entities.json"
+    assert ent.exists()
+    ent_data = json.loads(ent.read_text(encoding="utf-8"))
+    assert "people" in ent_data
+    assert "projects" in ent_data
+    assert "topics" in ent_data
+    assert len(ent_data["topics"]) >= 10
 

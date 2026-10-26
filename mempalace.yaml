@@ -1,0 +1,76 @@
+wing: universal_agency_pipeline
+description: "Universal Agency Pipeline v2.0 Architectural Knowledge Graph & Enterprise Guardrails Memory Wing"
+
+rooms:
+  - name: enterprise_guardrails
+    description: "All 25 Non-Negotiable Enterprise Guardrails (Rules 1-25) governing client SaaS, AI, and mobile apps"
+    keywords:
+      - guardrails
+      - enterprise_rules
+      - anti_slop
+      - master_admin
+      - zero_mock_fakes
+      - rbac_isolation
+
+  - name: architecture_and_monorepo
+    description: "Turborepo, pnpm workspaces, Next.js 15 App Router, Expo SDK 52 New Architecture, and type safety"
+    keywords:
+      - monorepo
+      - turborepo
+      - pnpm
+      - nextjs_15
+      - expo_sdk_52
+      - zod_schemas
+      - shared_packages
+
+  - name: security_and_auth
+    description: "Zero-Leak 6-Digit Email OTP, Anti-Sybil defense, SQLite WAL concurrency, CSP nonces, and Stripe ledger"
+    keywords:
+      - authentication
+      - email_otp
+      - sqlite_wal
+      - rate_limiting
+      - csp_nonce
+      - stripe_ledger
+      - sha256_receipts
+
+  - name: creative_studio_video
+    description: "Hollywood-grade video editing: velocity speed ramps, match cuts, 5-track audio (-14 LUFS), karaoke captions"
+    keywords:
+      - video_editing
+      - remotion
+      - speed_ramping
+      - sound_design
+      - ebu_r128
+      - karaoke_captions
+      - threejs_mockups
+
+  - name: observability_and_performance
+    description: "Core Web Vitals (LCP < 2.5s, INP < 200ms, CLS < 0.1), Lighthouse CI (90+), OpenTelemetry, and Sentry"
+    keywords:
+      - observability
+      - core_web_vitals
+      - lighthouse_ci
+      - structlog
+      - open_telemetry
+      - sentry
+      - slo_burn_rate
+
+  - name: skills_and_tooling
+    description: "The 12 Universal Pipeline skills, MCP budget limits (max 6), and token compression (Ponytail & Headroom)"
+    keywords:
+      - skills
+      - mcp_servers
+      - ponytail_diffs
+      - headroom
+      - context7
+      - mempalace
+
+  - name: adrs_and_decisions
+    description: "Permanent Architectural Decision Records (ADRs) explaining core engineering rationale"
+    keywords:
+      - adr
+      - architectural_decisions
+      - dedicated_signup_login
+      - platform_video_separation
+      - hardware_bound_keys

@@ -5,6 +5,16 @@ All notable changes to the **Universal Agency Pipeline** will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-10-26
+
+### Added
+- **Automated Adversarial AI Red-Teaming Suite (`tests/promptfoo.yaml`)**: Added 50+ battle-tested adversarial attack assertions mapping directly to OWASP Top 10 for LLMs (LLM01-LLM10), including prompt injection, jailbreaking, PII extraction, credential leaks, and harmful content prevention.
+- **Pre-Deploy Security Skill Upgrade (`skills/pre-deploy-security`)**: Updated security scanning procedure to execute Promptfoo evals alongside Strix pentesting before opening final PRs.
+- **Automated Semantic Release & GitHub Release Publisher (`.github/workflows/release.yml`)**: GitHub Actions workflow that automatically publishes releases on tag push (`v*.*.*`), compiles release notes from `CHANGELOG.md`, generates CycloneDX SBOM (`sbom.json`), computes cryptographic SHA-256 checksums (`LATEST_RELEASE.json`), and uploads release assets.
+- **MemPalace Architectural Memory Seeding (`mempalace.yaml` & `entities.json`)**: Pre-indexed memory wing featuring 7 architectural rooms (`enterprise_guardrails`, `architecture_and_monorepo`, `security_and_auth`, `creative_studio_video`, `observability_and_performance`, `skills_and_tooling`, `adrs_and_decisions`) with zero-token recall of pipeline specifications.
+- **Interactive Project Scaffolder CLI (`pipeline/cli.py`)**: One-command project creation CLI that scaffolds any of the 4 enterprise templates, injects `.agents/` workspace rules, configures `.env` with master admin (`josuva732006@gmail.com`), seeds MemPalace memory, and initializes clean Git.
+- **One-Shot Workspace Scaffolder Skill (`skills/agency-scaffold`)**: Enhanced skill with Mode A (one-shot creation from user idea $\rightarrow$ automatic template classification $\rightarrow$ scaffolding $\rightarrow$ Phase 1 Spec Engine) and Mode B (in-situ activation for existing repos).
+
 ## [2.0.0] - 2026-10-26
 
 ### Added

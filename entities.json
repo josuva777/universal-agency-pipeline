@@ -1,0 +1,29 @@
+{
+  "people": [
+    "Josuva (Supreme Master Admin: josuva732006@gmail.com / josuva777)",
+    "Emil Kowalski (Interaction Physics & Spring Mechanics)",
+    "Antigravity DeepMind Agentic Coding Architecture Team"
+  ],
+  "projects": [
+    "universal-agency-pipeline",
+    "sentinelops-ai",
+    "monorepo-saas-starter",
+    "fullstack-agent-app",
+    "mobile-agent-app",
+    "creative-agent-studio"
+  ],
+  "topics": [
+    "Enterprise Guardrails v2.0 (25 Non-Negotiable Rules)",
+    "Zero-Leak 6-Digit Email OTP Authentication",
+    "SQLite WAL Concurrency (PRAGMA journal_mode=WAL)",
+    "Hollywood-Grade Commercial Video Editing (Velocity Ramps & 5-Track Audio)",
+    "Core Web Vitals & Lighthouse CI Gate (Perf >= 90, A11y >= 95)",
+    "WCAG 2.2 AA Automated Accessibility Compliance (Axe-Core)",
+    "CycloneDX Software Bill of Materials (SBOM) Generation",
+    "Turborepo + pnpm Workspace Monorepo Architecture",
+    "Expo SDK 52 New Architecture Mobile Engine",
+    "Strict Nonce-Based Content Security Policy (CSP)",
+    "Sliding-Window Rate Limiting (5 requests per 15 minutes)",
+    "Tamper-Evident SHA-256 Stripe Financial Audit Ledger"
+  ]
+}

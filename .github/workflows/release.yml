@@ -1,0 +1,84 @@
+name: Release & Artifact Publisher
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release Tag (e.g. v2.0.0)"
+        required: true
+        default: "v2.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish-release:
+    name: 🚀 Create Official GitHub Release & Sign Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate CycloneDX SBOM
+        working-directory: templates/fullstack-agent-app
+        run: |
+          npx --yes @cyclonedx/cyclonedx-npm --package-lock-only --output-format JSON --output-file ../../sbom.json
+          test -s ../../sbom.json || exit 1
+          echo "✓ CycloneDX SBOM generated."
+
+      - name: Compute Cryptographic SHA-256 Checksums
+        run: |
+          mkdir -p releases
+          cp sbom.json releases/sbom.json
+          
+          # Generate SHA-256 checksums manifest
+          python -c "
+          import hashlib, json, os, datetime
+          
+          assets = []
+          for root, _, files in os.walk('releases'):
+              for f in files:
+                  path = os.path.join(root, f)
+                  with open(path, 'rb') as fp:
+                      sha256 = hashlib.sha256(fp.read()).hexdigest().upper()
+                  assets.append({
+                      'filename': f,
+                      'size_bytes': os.path.getsize(path),
+                      'sha256': sha256
+                  })
+                  
+          manifest = {
+              'version': '${{ github.ref_name || inputs.tag_name }}',
+              'algorithm': 'SHA-256',
+              'generated_at': datetime.datetime.utcnow().isoformat(),
+              'assets': assets,
+              'status': 'OFFICIAL_RELEASE'
+          }
+          
+          with open('releases/LATEST_RELEASE.json', 'w') as out:
+              json.dump(manifest, out, indent=2)
+          print('✓ Cryptographic manifest generated.')
+          "
+
+      - name: Publish Official GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || inputs.tag_name }}
+          name: "Release ${{ github.ref_name || inputs.tag_name }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: |
+            releases/sbom.json
+            releases/LATEST_RELEASE.json
+

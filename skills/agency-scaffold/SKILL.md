@@ -4,20 +4,61 @@ description: >-
   Scaffolds a new project folder with the ultimate agency workflow.
   Creates .agents/ directory with workspace MCPs (Playwright/Maestro + Supabase + Vercel/Cloudflare),
   Biome/Prettier auto-formatting hooks, enterprise AGENTS.md rules, and CHANGELOG.md.
-  Trigger phrases: "scaffold workspace", "setup project", "init agents", "add workspace config", "setup agents folder".
+  Trigger phrases: "scaffold workspace", "setup project", "init agents", "add workspace config", "setup agents folder", "uap create".
 ---
 
-# Workspace Scaffold
+# Universal Agency Workspace Scaffolder
 
-When the user wants to set up a new project for the agency workflow, run this procedure in the project root:
+This skill handles both **one-shot project generation from an idea** and **in-situ workspace activation** for existing folders.
 
-## Step 1: Detect or Ask Project Type
+---
+
+## Operating Modes
+
+### Mode A: One-Shot New Project Generation from Idea
+**Triggers**: `"scaffold workspace [idea]"`, `"uap create [idea]"`, `"scaffold project [idea]"`
+*(e.g., "scaffold workspace modern AI telehealth platform", "uap create mobile fintech wallet")*
+
+When the user gives an idea or asks to scaffold a new project:
+
+#### 1. Automatic Architecture & Template Selection
+Analyze the user's idea and select the optimal starter template:
+- **`monorepo-saas` (Default Recommended)**: For fullstack SaaS, web + mobile apps, B2B platforms, and enterprise solutions. Features Turborepo, pnpm workspaces, Next.js 15 App Router, Expo SDK 52 mobile, shared `@repo/ui`, `@repo/api` (Zod), and `@repo/database` (Prisma/SQLite WAL).
+- **`fullstack-agent-app`**: For dedicated web-first AI apps (Next.js 15, Vercel AI SDK streaming copilot, Tailwind CSS).
+- **`mobile-agent-app`**: For dedicated standalone iOS & Android mobile applications (Expo SDK 52 New Architecture, React Native).
+- **`creative-agent-studio`**: For automated video production, marketing campaigns, and 3D device commercial rendering (Remotion v4 + Three.js).
+
+#### 2. Execute Scaffolder CLI or Copy Starter
+Run the pipeline scaffolder CLI or instantiate files into the target folder:
+```powershell
+python -m pipeline.cli "<ProjectName>" --template <template-name> --admin "josuva732006@gmail.com"
+```
+Or programmatically copy:
+1. `templates/<template-name>/` $\rightarrow$ Target project directory.
+2. `.agents/` $\rightarrow$ Target project `.agents/` (with workspace MCP configs and Biome hooks).
+3. `mempalace.yaml` and `entities.json` $\rightarrow$ Pre-seeds architectural memory rooms and guardrail entities.
+4. Tailored `.env` & `.env.example` $\rightarrow$ Configured with master admin (`josuva732006@gmail.com`), SQLite WAL URL, and Stripe keys.
+5. Initialize Git repository with initial commit `feat(init): scaffold <ProjectName> with Universal Agency Pipeline v2.0`.
+
+#### 3. Automatic Transition to Phase 1 (Blueprint & Spec Engine)
+Do NOT stop at empty folder scaffolding. Immediately ingest the user's idea and proceed to:
+1. Generate `SPEC.md` specifying data schemas, API contracts, RBAC roles, and security boundaries.
+2. Generate an interactive `PLAN.md` implementation plan artifact with clickable checklist.
+3. Present the plan to the user for one-click approval before isolated branch build.
+
+---
+
+### Mode B: In-Situ Workspace Activation (Existing Codebase)
+**Triggers**: `"scaffold workspace"`, `"init agents"`, `"setup project"` in an existing repository.
+
+When run inside an existing codebase, do NOT overwrite application files. Set up the agency guardrails and workspace tooling:
+
+#### Step 1: Detect Project Type
 - **Web Project** (default): Playwright MCP + Supabase MCP + Vercel/Cloudflare
 - **Mobile Project**: Maestro MCP + Supabase MCP + Expo EAS
 
-## Step 2: Create `.agents/mcp_config.json`
-
-### Web Project:
+#### Step 2: Create `.agents/mcp_config.json`
+##### Web Project:
 ```json
 {
   "mcpServers": {
@@ -42,7 +83,7 @@ When the user wants to set up a new project for the agency workflow, run this pr
 }
 ```
 
-### Mobile Project:
+##### Mobile Project:
 ```json
 {
   "mcpServers": {
@@ -61,8 +102,7 @@ When the user wants to set up a new project for the agency workflow, run this pr
 }
 ```
 
-## Step 3: Create `.agents/hooks.json`
-
+#### Step 3: Create `.agents/hooks.json`
 ```json
 {
   "auto-format": {
@@ -82,24 +122,27 @@ When the user wants to set up a new project for the agency workflow, run this pr
 }
 ```
 
-## Step 4: Create `.agents/AGENTS.md`
-
+#### Step 4: Create `.agents/AGENTS.md`
 ```markdown
 # Project Workspace Rules
 
-## 1. Zero-Leak Security
+## 1. Zero-Leak Security & Master Admin Exclusivity
 - NEVER stage or commit `.env`, `.env.local`, API tokens, or secrets.
+- Master Admin: josuva732006@gmail.com (server-side enforced RBAC).
 
-## 2. 4-Phase Pipeline Discipline
-- Phase 1 (Blueprint): Interactive Implementation Plan + Generative UI sandbox
-- Phase 2 (Branch Build): Work in dedicated Git worktrees via branch subagent; use MSW for API mocking
-- Phase 3 (Testing): Playwright headless testing, Lighthouse 90+ score check, Visual Regression, Self-Healing loop
-- Phase 3.5 (Review): Principal Architect code review pass on git diff
-- Phase 4 (Ship): Format with Biome, conventional commit, GitHub PR with recordings, staging deploy, and client handover.md
+## 2. 5-Phase Universal Agency Pipeline Discipline
+- Phase 0: Task Decomposition & Multi-Agent Orchestration (Architect, Builder, QA, Security, DevOps).
+- Phase 1 (Blueprint): Interactive Implementation Plan + Generative UI sandbox.
+- Phase 2 (Branch Build): Work in dedicated Git worktrees via branch subagent (`Workspace: "branch"`).
+- Phase 3 (Testing): Playwright headless testing, Lighthouse 90+ score check, Visual Regression, Self-Healing loop.
+- Phase 3.5 (Security Review): Senior Staff Security Architect code review + Promptfoo adversarial red-teaming.
+- Phase 4 (Ship): Format with Biome, conventional commit, GitHub PR with recordings, staging deploy, and client handover.md.
 ```
 
-## Step 5: Create Initial `CHANGELOG.md`
+#### Step 5: Seed MemPalace Memory (`mempalace.yaml`)
+Create or verify `mempalace.yaml` in the project root with the 7 architectural rooms (`enterprise_guardrails`, `architecture_and_monorepo`, `security_and_auth`, `creative_studio_video`, `observability_and_performance`, `skills_and_tooling`, `adrs_and_decisions`).
 
+#### Step 6: Create or Update `CHANGELOG.md`
 ```markdown
 # Changelog
 
@@ -108,9 +151,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 ### Added
-- Project initialized with Antigravity Agency Workflow
+- Project initialized with Universal Agency Pipeline v2.0 workflow tooling and enterprise guardrails.
 ```
 
-## Step 6: Confirmation
-
+#### Step 7: Confirmation & Status
 Notify the user that the workspace is scaffolded and ready for development with all global and workspace tooling active.
