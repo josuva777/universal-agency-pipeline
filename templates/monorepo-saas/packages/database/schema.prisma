@@ -1,0 +1,63 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String      @id @default(cuid())
+  email           String      @unique
+  name            String?
+  company         String?
+  role            Role        @default(DEVELOPER)
+  tier            PlanTier    @default(FREE)
+  toolCallsLimit  Int         @default(50000)
+  toolCallsUsed   Int         @default(0)
+  isSuspended     Boolean     @default(false)
+  isMasterAdmin   Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  sessions        Session[]
+  transactions    BillingTransaction[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  device    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model BillingTransaction {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier              PlanTier
+  amountCents       Int
+  currency          String   @default("USD")
+  stripeSessionId   String?  @unique
+  sha256Hash        String
+  status            String   @default("SUCCEEDED")
+  createdAt         DateTime @default(now())
+}
+
+enum Role {
+  VIEWER
+  DEVELOPER
+  AUDITOR
+  SECURITY_LEAD
+  SUPER_ADMIN
+}
+
+enum PlanTier {
+  FREE
+  TEAM
+  ENTERPRISE
+}

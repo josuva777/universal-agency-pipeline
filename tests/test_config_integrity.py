@@ -45,11 +45,19 @@ def test_required_repo_structure():
         "skills/agent-builder/system_scanner.py",
         "skills/ponytail/SKILL.md",
         "skills/taste-skill/SKILL.md",
+        "skills/super-design-motion/SKILL.md",
+        "skills/observability/SKILL.md",
+        "skills/performance-guardian/SKILL.md",
+        "skills/accessibility-audit/SKILL.md",
+        "skills/supply-chain-security/SKILL.md",
         "templates/fullstack-agent-app/package.json",
         "templates/fullstack-agent-app/app/chat/page.tsx",
         "templates/fullstack-agent-app/.env.example",
         "templates/mobile-agent-app/package.json",
         "templates/creative-agent-studio/studio.ps1",
+        "templates/monorepo-saas/turbo.json",
+        "templates/monorepo-saas/pnpm-workspace.yaml",
+        "templates/monorepo-saas/package.json",
     ]
     for rel_path in required_paths:
         target = REPO_ROOT / rel_path

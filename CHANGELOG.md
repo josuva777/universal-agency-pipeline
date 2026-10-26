@@ -5,7 +5,24 @@ All notable changes to the **Universal Agency Pipeline** will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2026-10-26
+
+### Added
+- **Master AGENTS.md v2.0 Architecture**: Expanded from 17 to 25 Non-Negotiable Enterprise Guardrails across 6 comprehensive sections, including multi-agent task decomposition (Phase 0), monorepo-first architecture, Core Web Vitals, and WCAG 2.2 AA accessibility mandates.
+- **Production Observability Skill (`skills/observability`)**: Standardized structured JSON logging (`structlog` / `pino`), W3C OpenTelemetry distributed tracing, Sentry error tracking, `/health` endpoint diagnostics, and multi-window SLO error budget burn-rate alerting.
+- **Performance Guardian Skill (`skills/performance-guardian`)**: Enforces Core Web Vitals targets (LCP < 2.5s, INP < 200ms, CLS < 0.1), Lighthouse CI gates (≥90 across all categories), bundle size budgets (<100 kB gzipped), and Partial Pre-Rendering (PPR).
+- **Accessibility Compliance Skill (`skills/accessibility-audit`)**: Mandates WCAG 2.2 AA compliance via automated `@axe-core/playwright` scans (0 violations allowed), minimum 24×24px touch targets, focus obscuration prevention, and screen reader live regions (`aria-live="polite"`).
+- **Supply Chain Security Skill (`skills/supply-chain-security`)**: Automated CycloneDX SBOM generation (`releases/sbom.json`), frozen lockfile enforcement, strict nonce-based CSP headers, and sliding-window rate limiting.
+- **Restored Super Design Motion Skill (`skills/super-design-motion`)**: Integrated 15 curated design engineering superpowers directly into pipeline skills to prevent installation clobbering.
+- **Enterprise Monorepo SaaS Starter (`templates/monorepo-saas`)**: Full Turborepo + pnpm workspace starter featuring Next.js 15 App Router (`apps/web`), Expo SDK 52 New Architecture (`apps/mobile`), shared design system (`packages/ui`), database layer (`packages/database`), and type-safe API schemas (`packages/api`).
+- **Automated Verification Suites**: Added local Lighthouse CI runner (`tests/test_lighthouse.js`), axe-core accessibility suite (`tests/test_accessibility.spec.ts`), and multi-viewport visual regression tests (`tests/test_visual_regression.spec.ts`).
+
+### Changed
+- **Creative Studio Super-Pro Video Standard**: Upgraded `skills/creative-studio` with Hollywood-grade editing techniques: velocity speed ramps (300% entry $\rightarrow$ 80% hero $\rightarrow$ 300% exit), match cuts, 5-track cinematic sound design (-14 LUFS EBU R128), spring-pop karaoke typography, and 3D device mockups.
+- **Merge-Safe Installation (`setup.ps1` / `setup.sh`)**: Modified setup scripts to copy skill directories safely without destroying existing user-added skills.
+- **Root Environment Specification (`.env.example`)**: Added master environment template covering global MCP servers, cloud deployment secrets, SMTP, Stripe, and Sentry configurations.
+
+## [1.0.0] - 2026-10-21
 
 ### Added
 - **Mobile Starter Icon Assets**: Generated valid Expo launcher icon and adaptive icon assets in `templates/mobile-agent-app/assets/` to satisfy Metro bundler requirements.

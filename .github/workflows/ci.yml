@@ -92,3 +92,38 @@ jobs:
           test -f "app/(tabs)/chat.tsx" || exit 1
           test -f "app/(tabs)/index.tsx" || exit 1
           echo "✓ All mobile template routes and Maestro flows verified."
+
+      - name: Verify Monorepo SaaS Structure & Config
+        working-directory: templates/monorepo-saas
+        run: |
+          test -f "turbo.json" || exit 1
+          test -f "pnpm-workspace.yaml" || exit 1
+          test -f "apps/web/package.json" || exit 1
+          test -f "apps/mobile/package.json" || exit 1
+          test -f "packages/ui/package.json" || exit 1
+          test -f "packages/database/schema.prisma" || exit 1
+          echo "✓ Monorepo SaaS template structure verified."
+
+  supply-chain-security:
+    name: 🔒 Supply Chain & SBOM Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify CycloneDX SBOM Generation
+        run: |
+          npx @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.json
+          test -s sbom.json || exit 1
+          echo "✓ CycloneDX SBOM successfully generated."
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-bill-of-materials
+          path: sbom.json

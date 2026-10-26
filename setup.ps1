@@ -151,7 +151,10 @@ if ($DryRun) {
     Copy-Item "$scriptDir\AGENTS.md" "$antigravityDir\AGENTS.md" -Force
     
     if (-not (Test-Path "$antigravityDir\skills")) { New-Item -ItemType Directory -Path "$antigravityDir\skills" -Force | Out-Null }
-    Copy-Item "$scriptDir\skills\*" "$antigravityDir\skills\" -Recurse -Force
+    Get-ChildItem -Path "$scriptDir\skills" -Directory | ForEach-Object {
+        $dest = Join-Path "$antigravityDir\skills" $_.Name
+        Copy-Item -Path $_.FullName -Destination $dest -Recurse -Force
+    }
 }
 
 # 2. Claude Desktop
