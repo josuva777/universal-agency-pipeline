@@ -59,8 +59,10 @@ jobs:
           uv pip install --system pytest pytest-asyncio pydantic typer rich pyyaml httpx
 
       - name: Run Full Test Suite
+        env:
+          PYTHONPATH: .
         run: |
-          pytest tests/ -v
+          pytest tests/ -v -o asyncio_mode=auto
 
   templates-verification:
     name: 📦 Full-Stack & Mobile Template Build Verification
