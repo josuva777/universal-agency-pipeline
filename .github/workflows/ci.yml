@@ -103,6 +103,7 @@ jobs:
           test -f "apps/web/package.json" || exit 1
           test -f "apps/mobile/package.json" || exit 1
           test -f "packages/ui/package.json" || exit 1
+          test -f "packages/api/src/tracing.ts" || exit 1
           test -f "packages/database/schema.prisma" || exit 1
           echo "✓ Monorepo SaaS template structure verified."
 

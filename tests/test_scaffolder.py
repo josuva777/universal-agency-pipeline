@@ -41,5 +41,9 @@ def test_scaffold_project_monorepo():
         assert f'MASTER_ADMIN_EMAIL="{admin_email}"' in env_text
         assert 'PROJECT_NAME="Test SaaS App"' in env_text
         
-        # Verify git initialization
+        # Verify git initialization and pre-commit hooks
         assert (target_dir / ".git").exists()
+        assert (target_dir / ".git" / "hooks" / "pre-commit").exists()
+        
+        # Verify OpenTelemetry tracing in monorepo template
+        assert (target_dir / "packages" / "api" / "src" / "tracing.ts").exists()

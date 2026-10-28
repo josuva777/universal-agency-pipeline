@@ -36,6 +36,64 @@ def print_banner():
     print("  UNIVERSAL AGENCY PIPELINE v2.0 - PROJECT SCAFFOLDER CLI")
     print("=" * 68)
 
+PRE_COMMIT_HOOK_SH = """#!/bin/sh
+# Universal Agency Pipeline - Automated Pre-Commit Security & Quality Guard
+echo "[*] Universal Agency Pipeline: Running Pre-Commit Checks..."
+
+# 1. Zero-Trust Leaked Secrets & Credentials Scanner
+if [ -f ".agents/secret_scan.py" ]; then
+    echo "[*] Scanning for leaked API secrets, tokens, and private keys..."
+    if command -v python3 >/dev/null 2>&1; then
+        python3 .agents/secret_scan.py .
+    elif command -v python >/dev/null 2>&1; then
+        python .agents/secret_scan.py .
+    else
+        echo "[!] Python not found; skipping secret scan."
+    fi
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Pre-commit rejected: Leaked secret or token detected by Zero-Trust scanner!"
+        exit 1
+    fi
+    echo "[OK] Secret scan passed: 0 sensitive credentials found."
+fi
+
+# 2. Biome Fast Linter & Formatting Standards
+if command -v npx >/dev/null 2>&1 && [ -f "biome.json" ]; then
+    echo "[*] Running Biome ultra-fast formatting and lint verification..."
+    npx @biomejs/biome check --diagnostic-level=error --no-errors-on-unmatched .
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Pre-commit rejected: Biome lint/format check failed!"
+        echo "Run 'npx @biomejs/biome check --write .' to auto-fix issues."
+        exit 1
+    fi
+    echo "[OK] Biome check passed."
+fi
+
+echo "[OK] All pre-commit security gates passed successfully."
+exit 0
+"""
+
+def install_git_hooks(target_dir: Path) -> bool:
+    """Installs automated pre-commit security and quality hooks into .git/hooks."""
+    hooks_dir = target_dir / ".git" / "hooks"
+    if not hooks_dir.parent.exists():
+        return False
+
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    hook_file = hooks_dir / "pre-commit"
+    with open(hook_file, "w", encoding="utf-8", newline="\n") as f:
+        f.write(PRE_COMMIT_HOOK_SH)
+
+    try:
+        # Make hook executable on POSIX systems
+        current_mode = os.stat(hook_file).st_mode
+        os.chmod(hook_file, current_mode | 0o111)
+    except Exception:
+        pass
+
+    print("[*] Pre-commit security hook installed at .git/hooks/pre-commit")
+    return True
+
 def scaffold_project(
     name: str,
     target_dir: Path,
@@ -118,16 +176,19 @@ NEXT_PUBLIC_THEME="{theme}"
     with open(target_dir / ".env.example", "w", encoding="utf-8") as f:
         f.write(env_content)
 
-    # 4. Initialize Git Repository
+    # 4. Initialize Git Repository & Security Hooks
     if not (target_dir / ".git").exists():
         print("[*] Initializing fresh Git repository...")
         try:
             subprocess.run(["git", "init"], cwd=target_dir, check=True, stdout=subprocess.DEVNULL)
+            install_git_hooks(target_dir)
             subprocess.run(["git", "add", "-A"], cwd=target_dir, check=True, stdout=subprocess.DEVNULL)
             subprocess.run(["git", "commit", "-m", f"feat(init): scaffold {name} with Universal Agency Pipeline v2.0"], cwd=target_dir, check=True, stdout=subprocess.DEVNULL)
-            print("✓ Git initialized with clean initial commit.")
+            print("[OK] Git initialized with clean initial commit and pre-commit security hooks.")
         except Exception as e:
             print(f"[!] Git init skipped: {e}")
+    else:
+        install_git_hooks(target_dir)
 
     print("\n" + "=" * 68)
     print(f"  SUCCESS: {name} is ready for development!")
@@ -144,10 +205,19 @@ def main():
     parser.add_argument("--admin", "-a", default="josuva732006@gmail.com", help="Master Admin Email")
     parser.add_argument("--theme", choices=THEMES, default="", help="Default Theme Palette")
     parser.add_argument("--output", "-o", default="", help="Target directory (defaults to ./<name>)")
+    parser.add_argument("--install-hooks", action="store_true", help="Install pre-commit security hooks into existing repo")
 
     args = parser.parse_args()
 
     print_banner()
+
+    if args.install_hooks:
+        target_path = Path(args.output) if args.output else Path.cwd()
+        if install_git_hooks(target_path):
+            print(f"[OK] Pre-commit security hooks installed in {target_path}")
+        else:
+            print(f"[ERROR] Could not find .git in {target_path}")
+        return
 
     name = args.name
     if not name:

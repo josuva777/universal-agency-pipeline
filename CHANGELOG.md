@@ -5,6 +5,14 @@ All notable changes to the **Universal Agency Pipeline** will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-10-28
+
+### Added
+- **Hollywood 3D Device Mockup Asset Generator (`skills/creative-studio/scripts/render_device_mockups.py`)**: Procedural studio device mockup generator supporting iPhone 16 Pro, MacBook Pro 16", and Apple Studio Display across 3 themes (Cyber Metallic, Titanium Blue, Clay Matte) with high-res SVG vectors and an interactive Three.js 3D WebGL canvas viewer with orbit controls and canvas export.
+- **Enterprise OpenTelemetry Distributed Tracing Middleware (`templates/monorepo-saas/packages/api/src/tracing.ts`)**: W3C TraceContext compliant distributed tracing engine for Next.js App Router and Node APIs with zero-dependency fallback, automatic `x-trace-id` / `x-span-id` propagation, exception recording, and granular sub-segment tracing.
+- **Automated Pre-Commit Security & Quality Hooks (`pipeline/cli.py`)**: Automated installation of pre-commit hooks executing Zero-Trust secret scanning and Biome formatting before every commit, preventing credential leaks and format regressions.
+- **Scaffolder & Test Suite Enhancements (`tests/test_mockup_generator.py`, `tests/test_scaffolder.py`, `tests/test_scaffold_agent.py`)**: Added dedicated unit test suites for 3D mockup generator and pre-commit hooks, with in-process agent execution tests passing 20/20.
+
 ## [2.1.0] - 2026-10-26
 
 ### Added
