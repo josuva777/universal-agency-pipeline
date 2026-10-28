@@ -1,21 +1,19 @@
 import React from 'react';
+import { ThemeProvider } from '@repo/ui';
 
 export const metadata = {
-  title: 'SentinelOps AI | Enterprise Autonomous Fleet Guardrails',
-  description: 'Deterministic in-line guardrails, cryptographic financial ledger, and multi-tenant security architecture.',
+  title: 'SentinelOps | Autonomous Agent Guardrails & Enterprise Governance',
+  description: 'Deterministic scope containment, real-time cryptographic audit ledgers, and zero-leak identity verification.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark bg-slate-950 text-slate-100 antialiased">
-      <body className="min-h-screen selection:bg-emerald-500 selection:text-slate-950">
-        {children}
+    <html lang="en" className="dark">
+      <body className="antialiased selection:bg-emerald-500 selection:text-black">
+        <ThemeProvider defaultTheme="cyberpunk-matrix">
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-

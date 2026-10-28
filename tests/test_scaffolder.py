@@ -47,3 +47,15 @@ def test_scaffold_project_monorepo():
         
         # Verify OpenTelemetry tracing in monorepo template
         assert (target_dir / "packages" / "api" / "src" / "tracing.ts").exists()
+        
+        # Verify 15-Department Modules
+        assert (target_dir / "packages" / "collab" / "src" / "room.ts").exists()
+        assert (target_dir / "packages" / "database" / "src" / "vector.ts").exists()
+        assert (target_dir / "apps" / "desktop" / "src-tauri" / "tauri.conf.json").exists()
+        assert (target_dir / "apps" / "web" / "app" / "login" / "page.tsx").exists()
+        assert (target_dir / "apps" / "web" / "app" / "signup" / "page.tsx").exists()
+        assert (target_dir / "apps" / "web" / "app" / "dashboard" / "admin" / "page.tsx").exists()
+        
+        # Verify tailored branding in page.tsx
+        page_text = (target_dir / "apps" / "web" / "app" / "page.tsx").read_text(encoding="utf-8")
+        assert 'projectName="Test SaaS App"' in page_text

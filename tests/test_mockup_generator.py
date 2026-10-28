@@ -34,3 +34,31 @@ def test_generate_interactive_3d_html():
         assert "three.min.js" in content
         assert "OrbitControls.js" in content
         assert "Clay Matte" in content
+
+VIDEO_SCRIPT_PATH = Path(__file__).resolve().parent.parent / "skills" / "creative-studio" / "scripts" / "generate_ai_video.py"
+video_spec = importlib.util.spec_from_file_location("generate_ai_video", VIDEO_SCRIPT_PATH)
+video_mod = importlib.util.module_from_spec(video_spec)
+video_spec.loader.exec_module(video_mod)
+AIVideoDirector = video_mod.AIVideoDirector
+
+def test_ai_video_director_storyboard():
+    director = AIVideoDirector(project_name="NovaGuard AI", out_dir=Path("."))
+    storyboard = director.generate_storyboard("Next-gen AI security platform")
+    assert len(storyboard) == 5
+    assert storyboard[0]["name"] == "Dopamine Hook"
+    assert "NovaGuard AI" in storyboard[2]["voiceover"]
+
+def test_ai_video_director_subtitles_and_remotion():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        director = AIVideoDirector(project_name="NovaGuard AI", out_dir=Path(tmp_dir))
+        manifest = director.generate_all("Automated agent fleet")
+        assert manifest["duration_seconds"] == 30.0
+        assert manifest["fps"] == 60
+        assert (Path(tmp_dir) / "storyboard.json").exists()
+        assert (Path(tmp_dir) / "whisper_subtitles.json").exists()
+        assert (Path(tmp_dir) / "CommercialComposition.tsx").exists()
+        tsx = (Path(tmp_dir) / "CommercialComposition.tsx").read_text(encoding="utf-8")
+        assert "Commercial16x9" in tsx
+        assert "Commercial9x16" in tsx
+        assert "SubtitlesOverlay" in tsx
+

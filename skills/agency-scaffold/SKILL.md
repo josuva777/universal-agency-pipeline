@@ -41,10 +41,22 @@ Or programmatically copy:
 5. Initialize Git repository with initial commit `feat(init): scaffold <ProjectName> with Universal Agency Pipeline v2.0`.
 
 #### 3. Automatic Transition to Phase 1 (Blueprint & Spec Engine)
-Do NOT stop at empty folder scaffolding. Immediately ingest the user's idea and proceed to:
-1. Generate `SPEC.md` specifying data schemas, API contracts, RBAC roles, and security boundaries.
-2. Generate an interactive `PLAN.md` implementation plan artifact with clickable checklist.
-3. Present the plan to the user for one-click approval before isolated branch build.
+Do NOT stop at empty folder scaffolding or leave generic AI placeholders. Immediately ingest the user's idea and enforce the **Zero-Slop Quality Mandate**:
+1. **Bespoke Domain Ingestion**: Analyze the client's industry and instantly tailor the application title, copy, value proposition, and feature architecture (no "Feature 1", no "Lorem Ipsum", no generic purple buttons).
+2. **Deterministic Color Matching**: Automatically map the client industry to one of the 5 curated OKLCH palettes:
+   - Security / DevTools $\rightarrow$ *Cyberpunk Matrix* (Obsidian & Emerald) or *Lockdown Crimson* (Deep Slate & Laser Crimson)
+   - FinTech / B2B SaaS $\rightarrow$ *Oceanic Cobalt* (Midnight & Cobalt Blue)
+   - Aerospace / Industrial / Hardware $\rightarrow$ *Avionics Amber* (Stealth Charcoal & Amber)
+   - High-Design Media / Studio $\rightarrow$ *Swiss Bauhaus* (Deep Navy & Bauhaus Crimson)
+3. **Full Suite of Real Pages**: Every scaffolded project automatically includes:
+   - Public Landing Page with Three.js 3D canvas hero and social proof badges.
+   - Transparent Pricing table with Monthly/Annual billing toggle and 20% discount badge.
+   - Omnichannel Authentication (`/login` & `/signup`) with 6-digit cryptographic Email OTP and anti-sybil validation.
+   - Real-time Operations Dashboard (`/dashboard`) with quota metering, reactive counters, and kill-switches.
+   - Supreme Master Admin Center (`/dashboard/admin`) with HTTP 403 non-admin lockscreen (master: `josuva732006@gmail.com`).
+4. Generate `SPEC.md` specifying data schemas, API contracts, RBAC roles, and security boundaries.
+5. Generate an interactive `PLAN.md` implementation plan artifact with clickable checklist.
+6. Present the plan to the user for one-click approval before isolated branch build.
 
 ---
 

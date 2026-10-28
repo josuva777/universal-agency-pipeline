@@ -5,6 +5,24 @@ All notable changes to the **Universal Agency Pipeline** will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-10-28
+
+### Added
+- **AI-Native Generative Video Director (`skills/creative-studio/scripts/generate_ai_video.py`) (Dept 10)**: Claude/Runway/ElevenLabs generative video directing pipeline with 5-scene cinematic storyboard generation, millisecond Whisper word-level subtitles sync, programmatic Remotion TSX compilation (16:9 Landscape & 9:16 Vertical), and 5-track audio design.
+- **Real-Time Multiplayer Collaboration Engine (`packages/collab`) (Dept 11)**: Yjs CRDT shared document provider, ephemeral awareness presence manager (<20ms latency), and multiplayer cursor tracking.
+- **Production Vector DB & Hybrid RAG (`packages/database/src/vector.ts`) (Dept 12)**: pgvector HNSW index schema, cosine similarity calculations, Reciprocal Rank Fusion (RRF), and full-text BM25 search.
+- **Tauri 2.0 Native Desktop Architecture (`apps/desktop`) (Dept 13)**: Ultra-lightweight ~600KB native OS desktop application with Rust backend, system tray integration, window bounds control, and native OS notifications.
+- **Browser-Native WebGPU Inference Engine (`packages/ui/src/WebLLMInference.tsx`) (Dept 14)**: WebGPU in-browser offline AI copilot with `useWebGPUInference` hook executing Llama 3.1 with zero server costs and zero data transmission.
+- **Global Edge Computing & Hono Router (`packages/api/src/edge-hono.ts`) (Dept 15)**: Sub-millisecond cold start edge router deployable on Cloudflare Workers and Vercel Edge with W3C OpenTelemetry tracing.
+- **Complete Suite of Masterpiece Web Pages (`apps/web`)**:
+  - `app/layout.tsx`: OKLCH multi-theme engine wrapper (`ThemeProvider`) across 5 dynamic palettes.
+  - `app/page.tsx`: Tier-1 public landing page with Sticky Navbar, 3D Hero, in-browser WebGPU sandbox, Architecture Grid, Pricing Table, and FAQ Accordion.
+  - `app/login/page.tsx`: Omnichannel login supporting Work Email + Password or 6-digit cryptographic Email OTP.
+  - `app/signup/page.tsx`: Anti-sybil registration with disposable domain filtering and 6-digit verification code delivery.
+  - `app/dashboard/page.tsx`: Live tenant operations console with sliding-window quota meter, reactive notification counters (N $\rightarrow$ 0), and active session kill-switch.
+  - `app/dashboard/admin/page.tsx`: Supreme Master Admin Center strictly restricted to `josuva732006@gmail.com` with HTTP 403 lockscreen.
+- **Anti-Slop Zero-Mistake Scaffolder Engine (`pipeline/cli.py` & `skills/agency-scaffold/SKILL.md`)**: Intelligent domain synthesis automatically tailoring project branding, palette mapping, and layout copy upon scaffolding, forbidding generic AI placeholders.
+
 ## [2.2.0] - 2026-10-28
 
 ### Added

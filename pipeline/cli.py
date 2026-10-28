@@ -176,6 +176,29 @@ NEXT_PUBLIC_THEME="{theme}"
     with open(target_dir / ".env.example", "w", encoding="utf-8") as f:
         f.write(env_content)
 
+    # 3.5 Tailor Bespoke Project Branding & Theme
+    print(f"[*] Customizing project branding and theme palette for {name}...")
+    layout_file = target_dir / "apps" / "web" / "app" / "layout.tsx"
+    if layout_file.exists():
+        content = layout_file.read_text(encoding="utf-8")
+        content = content.replace("SentinelOps", name)
+        # Match theme ID from selection
+        theme_slug = theme.split(" ")[0].lower()
+        content = content.replace('defaultTheme="cyberpunk-matrix"', f'defaultTheme="{theme_slug}"')
+        layout_file.write_text(content, encoding="utf-8")
+
+    page_file = target_dir / "apps" / "web" / "app" / "page.tsx"
+    if page_file.exists():
+        content = page_file.read_text(encoding="utf-8")
+        content = content.replace('projectName="SentinelOps"', f'projectName="{name}"')
+        page_file.write_text(content, encoding="utf-8")
+
+    tauri_conf = target_dir / "apps" / "desktop" / "src-tauri" / "tauri.conf.json"
+    if tauri_conf.exists():
+        content = tauri_conf.read_text(encoding="utf-8")
+        content = content.replace("Enterprise Desktop Console", f"{name} Desktop Console")
+        tauri_conf.write_text(content, encoding="utf-8")
+
     # 4. Initialize Git Repository & Security Hooks
     if not (target_dir / ".git").exists():
         print("[*] Initializing fresh Git repository...")
