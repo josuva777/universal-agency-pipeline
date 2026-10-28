@@ -180,3 +180,4 @@ export const AppDistributionModal: React.FC<AppDistributionModalProps> = ({
     document.body
   );
 };
+

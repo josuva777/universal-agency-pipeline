@@ -45,3 +45,4 @@ export class CollabRoom {
     return this.user;
   }
 }
+

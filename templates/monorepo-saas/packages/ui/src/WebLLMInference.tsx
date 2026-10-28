@@ -88,3 +88,4 @@ export const WebGPUCopilotCard: React.FC<{ prompt?: string }> = ({ prompt }) => 
     </div>
   );
 };
+

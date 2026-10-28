@@ -96,3 +96,4 @@ export const Navbar: React.FC<{ projectName?: string }> = ({ projectName = 'Sent
     </>
   );
 };
+

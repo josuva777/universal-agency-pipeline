@@ -88,3 +88,4 @@ CREATE INDEX IF NOT EXISTS idx_doc_embeddings_fts
 ON document_embeddings
 USING gin (to_tsvector('english', content));
 `;
+

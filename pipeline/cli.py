@@ -11,6 +11,7 @@ import shutil
 import argparse
 import subprocess
 from pathlib import Path
+from pipeline.generator import synthesize_project_specs, generate_bespoke_page_tsx
 
 PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = PIPELINE_ROOT / "templates"
@@ -178,20 +179,20 @@ NEXT_PUBLIC_THEME="{theme}"
 
     # 3.5 Tailor Bespoke Project Branding & Theme
     print(f"[*] Customizing project branding and theme palette for {name}...")
+    specs = synthesize_project_specs(name=name, idea=name)
+    theme_slug = theme.split(" ")[0].lower() if theme else specs["default_theme"]
+
     layout_file = target_dir / "apps" / "web" / "app" / "layout.tsx"
     if layout_file.exists():
         content = layout_file.read_text(encoding="utf-8")
         content = content.replace("SentinelOps", name)
-        # Match theme ID from selection
-        theme_slug = theme.split(" ")[0].lower()
         content = content.replace('defaultTheme="cyberpunk-matrix"', f'defaultTheme="{theme_slug}"')
         layout_file.write_text(content, encoding="utf-8")
 
     page_file = target_dir / "apps" / "web" / "app" / "page.tsx"
     if page_file.exists():
-        content = page_file.read_text(encoding="utf-8")
-        content = content.replace('projectName="SentinelOps"', f'projectName="{name}"')
-        page_file.write_text(content, encoding="utf-8")
+        bespoke_code = generate_bespoke_page_tsx(specs)
+        page_file.write_text(bespoke_code, encoding="utf-8")
 
     tauri_conf = target_dir / "apps" / "desktop" / "src-tauri" / "tauri.conf.json"
     if tauri_conf.exists():

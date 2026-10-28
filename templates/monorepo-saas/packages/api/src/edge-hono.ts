@@ -81,3 +81,4 @@ edgeRouter.get('/health', async () => {
     { headers: { 'Content-Type': 'application/json' } }
   );
 });
+

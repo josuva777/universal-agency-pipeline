@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import { Navbar, PricingTable, useTheme, WebGPUCopilotCard } from '@repo/ui';
+import { Navbar, PricingTable, useTheme, WebGPUCopilotCard, AIStudioWorkbench } from '@repo/ui';
+
 
 export default function HomePage() {
   const { currentTheme } = useTheme();
@@ -83,6 +84,11 @@ export default function HomePage() {
         {/* In-Browser WebGPU AI Sandbox */}
         <div className="mt-16 w-full flex justify-center">
           <WebGPUCopilotCard prompt="Audit autonomous agent network permissions for tenant_98" />
+        </div>
+
+        {/* Live Interactive Generative AI Studio (Lovable & Google AI Studio Grade) */}
+        <div className="mt-16 w-full max-w-6xl">
+          <AIStudioWorkbench />
         </div>
       </section>
 

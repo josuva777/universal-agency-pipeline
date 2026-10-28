@@ -5,6 +5,13 @@ All notable changes to the **Universal Agency Pipeline** will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-10-28
+
+### Added
+- **Interactive Generative AI Studio & Workbench (`packages/ui/src/AIStudioWorkbench.tsx`)**: Google AI Studio and Lovable grade generative development workbench embedded directly into `@repo/ui` and landing pages with multi-model switcher (Gemini 2.5 Pro, Claude 3.5 Sonnet, Llama 3.1 WebGPU), live hot-reloading preview canvas, zero-slop TypeScript export, and synthesized WebAudio foley clicks.
+- **Beyond-2026 Design System Architecture (`skills/taste-skill/references/beyond-2026-design-system.md`)**: Comprehensive architectural guide detailing tactile glassmorphism, mathematical 4px/8px optical rhythm, OKLCH multi-palette token engine, and zero-slop craft standards.
+- **Bespoke Intelligent Scaffolder Generator (`pipeline/generator.py` & `pipeline/cli.py`)**: Smart zero-mistake website generator that dynamically synthesizes tailored domain copy, Bento architecture cards, interactive workbenches, and multi-palette color harmony based on user ideas, eliminating generic AI templates.
+
 ## [2.3.0] - 2026-10-28
 
 ### Added

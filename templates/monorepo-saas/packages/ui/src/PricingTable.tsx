@@ -179,3 +179,4 @@ export const PricingTable: React.FC<{ onSelectPlan?: (planId: string) => void }>
     </section>
   );
 };
+
