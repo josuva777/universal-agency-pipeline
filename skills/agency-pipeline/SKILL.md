@@ -10,72 +10,63 @@ description: >-
   Trigger phrases: "build feature", "full pipeline", "end to end", "agency pipeline".
 ---
 
-# The Ultimate Agency Pipeline
+# The Ultimate Agency Pipeline — Autonomous Super-Agent Engine
 
-This skill guides you through building client-ready features with enterprise-grade quality control, security, performance audits, and polished client delivery.
+This skill guides the Antigravity agent to operate with the combined power of **Lovable (one-shot full-stack autonomy)**, **Google AI Studio (deep prompt precision & typed schemas)**, and **Cursor (deep repository awareness & surgical self-healing)**.
 
 ```mermaid
 flowchart TD
-    P1["Phase 1: GSD Spec Engine\n- Boundary Spec (SPEC.md)\n- Interactive Implementation Plan (PLAN.md)\n- Generative UI Prototype Sandbox"]
-    P2["Phase 2: Isolated Branch Build\n- Git Worktree feature/<slug>\n- Ponytail Minimal Diffs (54%+ Token Saver)\n- Supabase Branch / MSW Mocking\n- LangGraph / Antigravity SDK"]
-    P3["Phase 3: The Ralph Loop\n- Playwright (Web) / Maestro (Mobile)\n- Promptfoo AI Evals\n- Autonomous Self-Healing Loop (Up to 3 retries)"]
-    REV["Phase 3.5: Principal Architect & Security\n- Strix Sandbox OWASP Pentest\n- Senior Architect git diff Audit"]
-    P4["Phase 4: Clean Git & CodeRabbit PR\n- Biome <50ms Auto-Formatter\n- Conventional Commit & Push\n- GitHub MCP PR + CodeRabbit Review\n- Vercel / Cloudflare / Expo Preview\n- Auto-Changelog & Client Handover Brief"]
+    P1["Phase 1: Google AI Studio Architecture & Blueprint\n- Boundary Spec (SPEC.md)\n- Strict Typed Zod/Pydantic Schemas\n- Interactive Implementation Plan (PLAN.md)\n- Generative UI Prototype Sandbox"]
+    P2["Phase 2: Lovable One-Shot Full-Stack Autonomous Build\n- Complete End-to-End Implementation (Zero Stubs/TODOs)\n- Real Domain Mathematics & Business Logic\n- OKLCH 5-Theme Engine & Bento Grids\n- 15 Departments: Web, Mobile, Desktop, Remotion, pgvector"]
+    P3["Phase 3: Cursor Surgical Self-Healing (The Ralph Loop)\n- Automated Unit & E2E Verification\n- Autonomous Log Diagnosis & targeted patch\n- 100% Green Test Gate before user presentation"]
+    REV["Phase 3.5: Principal Architect & Security Review\n- Strix Sandbox OWASP Pentest\n- Zero-Trust Secret Scan & Biome Lint"]
+    P4["Phase 4: Clean Git, PR & Client Delivery\n- Conventional Commit & Push to GitHub\n- Preview Deploy & Automated Changelog"]
 
     P1 --> P2 --> P3 --> REV --> P4
 ```
 
 ---
 
-## Phase 1 — GSD Spec Engine & Architecture
+## Phase 1 — Google AI Studio Architecture & Blueprint
 
-1. **Requirements & Boundary Ingestion (`SPEC.md`)**:
-   - Parse client request, defining exact user stories, data schemas, API contracts, and explicit constraints.
+1. **Requirements & Domain Taxonomy (`SPEC.md`)**:
+   - Ingest user concept; classify sector (SaaS, FinTech, Industrial, Health, Creative Video, DevSecOps).
+   - Formulate strict compile-time Zod (TypeScript) or Pydantic (Python) schemas for all data models and API contracts.
 2. **Generative UI Prototype (Sandbox)**:
-   - For user-facing features, generate an interactive HTML/Tailwind sandbox prototype in an artifact viewer before writing production code.
-   - Allows instant visual feedback and alignment on layout and interactions.
+   - For visual interfaces, synthesize an interactive prototype sandbox with real interactive state before generating production packages.
 3. **Interactive Implementation Plan (`PLAN.md`)**:
-   - Generate an Implementation Plan artifact with:
-     - Clickable task checklist
-     - Mermaid architecture / flow diagram
-     - File-by-file changes and diffs
-     - Testing & verification criteria
+   - Generate an Implementation Plan artifact with clickable task checklist, Mermaid architecture diagrams, file-by-file changes, and testing criteria.
 4. **Approval Gate**:
-   - **DO NOT write production code until the user approves the plan.**
+   - Review and align with the user before isolated branch build.
 
 ---
 
-## Phase 2 — Isolated Branch Build (Git Worktree & Ponytail Diffs)
+## Phase 2 — Lovable One-Shot Full-Stack Autonomous Build
 
-1. **Isolated Worktree / Branch**:
-   - Create a dedicated Git worktree: `git worktree add ../feature-<slug> -b feature/<slug>`.
-   - Main branch remains 100% untouched until testing and PR review.
-2. **Ponytail Senior Diffs**:
-   - Apply minimal surgical diffs via `replace_file_content`.
-   - Never dump entire files when making small updates (cuts token cost by 54%+).
-3. **Backend & API Mocking**:
-   - **Supabase**: If database schema changes are needed, spin up an isolated Supabase Preview Branch.
-   - **Offline / Zero-Cost Mocking**: If third-party APIs (Stripe, Twilio, OpenAI) have rate limits or lack client credentials, create Mock Service Worker (MSW) handlers so development is never blocked.
-4. **Code Implementation**:
-   - Frontend/3D: Motion Primitives, React Three Fiber, `gltfjsx`, Spline, Tailwind CSS, Skia (mobile).
-   - Agentic AI: `LangGraph` or `Antigravity SDK` patterns with typed Pydantic/Zod schemas.
-5. **Rapid Formatting & Linting**:
-   - Format with **Biome** (`npx @biomejs/biome check --write .`) in milliseconds.
+1. **End-to-End Complete Execution**:
+   - **Zero Placeholders**: Never leave `// TODO: implement later` or placeholder copy. Write complete, working implementations for every file, component, route, and database migration.
+   - **Real Mathematics & Logic**: Implement real algorithms (mortgage amortizations, CNC toolpaths, cryptographic hash chaining, orderbook matching), never fake random numbers.
+2. **Anti-Slop Visual Craft**:
+   - Enforce 5 dynamic OKLCH palettes (`Cyberpunk Matrix`, `Oceanic Cobalt`, `Avionics Amber`, `Swiss Bauhaus`, `Lockdown Crimson`) with zero color mismatches.
+   - Apply razor-sharp 1px glass borders (`rgba(255, 255, 255, 0.08)`), mouse-following spotlights, and Emil Kowalski spring animations (`stiffness: 400, damping: 30`).
+3. **15-Department Scalability**:
+   - Capable of delivering full-stack Next.js 15 Web, 120Hz Expo SDK 52 Native Mobile, ~600KB Tauri 2.0 Rust Desktop, Hollywood Remotion v4 Video Studios, pgvector Hybrid RAG, and WebGPU on-device offline AI.
+4. **Ponytail Minimal Diffs**:
+   - When modifying existing files, apply senior-dev surgical diffs via `replace_file_content` to keep context window fresh.
 
 ---
 
-## Phase 3 — The Ralph Loop (Automated Self-Healing Audits)
+## Phase 3 — Cursor Surgical Self-Healing (The Ralph Loop)
 
-1. **Automated E2E Testing**:
-   - **Web**: Playwright headless Chrome (clicks interactive UI, catches uncaught exceptions & console errors, records video proof).
-   - **Mobile**: Maestro flow runner (`maestro test .maestro/flows/chat.yaml`).
-2. **AI Evals**: Run Promptfoo adversarial red-teaming cases.
-3. **The Ralph Self-Healing Loop**:
-   - If tests fail, uncaught exceptions occur, or Lighthouse scores fall below target:
-     - The agent autonomously inspects the error trace.
-     - Diagnoses the root cause and applies a targeted fix.
-     - Automatically re-runs the test suite (up to 3 autonomous self-healing retries).
-     - Only escalates to the user if blocked after 3 iterations.
+1. **Automated Verification**:
+   - Run automated test suites (pytest for Python, vitest/jest for TypeScript, Playwright for Web).
+   - Verify link integrity and JavaScript syntax across all pages.
+2. **Autonomous Self-Healing Loop**:
+   - If a build fails or tests fail:
+     - Autonomously read the error stack trace.
+     - Diagnose the root cause and apply a targeted surgical patch.
+     - Re-test immediately (up to 3 automated iterations).
+     - Never ask the user to fix an error the agent can heal autonomously.
 4. **Lighthouse Core Web Vitals Audit**:
    - Target: **Performance 90+**, **Accessibility (a11y) 95+**, **Best Practices 95+**, **SEO 90+**.
 

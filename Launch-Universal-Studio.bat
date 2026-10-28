@@ -10,3 +10,4 @@ if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
     start "" "%~dp0studio\index.html"
 )
 exit
+
