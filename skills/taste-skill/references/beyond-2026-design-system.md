@@ -122,3 +122,4 @@ Every modern product must include an inline generative studio interface:
 - [ ] **Fluid Momentum Scrolling:** Lenis RAF-synced smooth scrolling enabled on all public pages.
 - [ ] **Sticky Z-40 Navbars:** 100% opaque surface background (`currentTheme.surface`), never clipped by card stacking contexts.
 - [ ] **Body Portal Modals:** Triggered dialogs mount to `document.body` via `createPortal(..., document.body)` at `z-[9999]`.
+
