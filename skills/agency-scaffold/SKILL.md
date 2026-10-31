@@ -31,13 +31,13 @@ Analyze the user's idea and select the optimal starter template:
 #### 2. Execute Scaffolder CLI or Copy Starter
 Run the pipeline scaffolder CLI or instantiate files into the target folder:
 ```powershell
-python -m pipeline.cli "<ProjectName>" --template <template-name> --admin "josuva732006@gmail.com"
+python -m pipeline.cli "<ProjectName>" --template <template-name> --admin "admin@example.com"
 ```
 Or programmatically copy:
 1. `templates/<template-name>/` $\rightarrow$ Target project directory.
 2. `.agents/` $\rightarrow$ Target project `.agents/` (with workspace MCP configs and Biome hooks).
 3. `mempalace.yaml` and `entities.json` $\rightarrow$ Pre-seeds architectural memory rooms and guardrail entities.
-4. Tailored `.env` & `.env.example` $\rightarrow$ Configured with master admin (`josuva732006@gmail.com`), SQLite WAL URL, and Stripe keys.
+4. Tailored `.env` & `.env.example` $\rightarrow$ Configured with master admin (`admin@example.com`), SQLite WAL URL, and Stripe keys.
 5. Initialize Git repository with initial commit `feat(init): scaffold <ProjectName> with Universal Agency Pipeline v2.0`.
 
 #### 3. Automatic Transition to Phase 1 (Blueprint & Spec Engine)
@@ -53,7 +53,7 @@ Do NOT stop at empty folder scaffolding or leave generic AI placeholders. Immedi
    - Transparent Pricing table with Monthly/Annual billing toggle and 20% discount badge.
    - Omnichannel Authentication (`/login` & `/signup`) with 6-digit cryptographic Email OTP and anti-sybil validation.
    - Real-time Operations Dashboard (`/dashboard`) with quota metering, reactive counters, and kill-switches.
-   - Supreme Master Admin Center (`/dashboard/admin`) with HTTP 403 non-admin lockscreen (master: `josuva732006@gmail.com`).
+   - Supreme Master Admin Center (`/dashboard/admin`) with HTTP 403 non-admin lockscreen (master: `admin@example.com`).
 4. Generate `SPEC.md` specifying data schemas, API contracts, RBAC roles, and security boundaries.
 5. Generate an interactive `PLAN.md` implementation plan artifact with clickable checklist.
 6. Present the plan to the user for one-click approval before isolated branch build.
@@ -140,7 +140,7 @@ When run inside an existing codebase, do NOT overwrite application files. Set up
 
 ## 1. Zero-Leak Security & Master Admin Exclusivity
 - NEVER stage or commit `.env`, `.env.local`, API tokens, or secrets.
-- Master Admin: josuva732006@gmail.com (server-side enforced RBAC).
+- Master Admin: admin@example.com (server-side enforced RBAC).
 
 ## 2. 5-Phase Universal Agency Pipeline Discipline
 - Phase 0: Task Decomposition & Multi-Agent Orchestration (Architect, Builder, QA, Security, DevOps).

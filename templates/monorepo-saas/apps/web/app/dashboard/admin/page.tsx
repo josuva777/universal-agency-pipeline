@@ -5,10 +5,10 @@ import { useTheme } from '@repo/ui';
 export default function AdminCenterPage() {
   const { currentTheme } = useTheme();
   // Simulated logged-in user email
-  const [currentUserEmail, setCurrentUserEmail] = useState('josuva732006@gmail.com');
+  const [currentUserEmail, setCurrentUserEmail] = useState('admin@example.com');
   const [emergencyKillActive, setEmergencyKillActive] = useState(false);
 
-  const isMasterAdmin = currentUserEmail === 'josuva732006@gmail.com';
+  const isMasterAdmin = currentUserEmail === 'admin@example.com';
 
   // Rule 7 & 9: HTTP 403 Access Denied Lockscreen for Non-Admins
   if (!isMasterAdmin) {
@@ -26,11 +26,11 @@ export default function AdminCenterPage() {
           </div>
           <h1 className="text-xl font-bold font-mono text-red-400">Access Denied</h1>
           <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-            Enterprise Admin Center requires Supreme Master Admin authority (<code className="text-white">josuva732006@gmail.com</code>). Your current role does not possess elevation privileges.
+            Enterprise Admin Center requires Supreme Master Admin authority (<code className="text-white">admin@example.com</code>). Your current role does not possess elevation privileges.
           </p>
           <div className="mt-6 flex flex-col gap-2">
             <button
-              onClick={() => setCurrentUserEmail('josuva732006@gmail.com')}
+              onClick={() => setCurrentUserEmail('admin@example.com')}
               className="text-xs text-slate-500 hover:text-slate-400 font-mono"
             >
               (Simulate Login as Master Admin)
@@ -61,7 +61,7 @@ export default function AdminCenterPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-slate-400">Logged in: <strong className="text-white">josuva732006@gmail.com</strong></span>
+          <span className="text-xs font-mono text-slate-400">Logged in: <strong className="text-white">admin@example.com</strong></span>
           <button
             onClick={() => setCurrentUserEmail('dev@external.com')}
             className="text-xs text-slate-500 hover:text-red-400 font-mono"

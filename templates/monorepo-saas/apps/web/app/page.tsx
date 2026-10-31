@@ -14,7 +14,7 @@ export default function HomePage() {
     },
     {
       q: 'Can non-admin developers access the Enterprise Admin Center?',
-      a: 'No. The Enterprise Admin Center enforces server-side Role-Based Access Control (RBAC) returning an HTTP 403 Access Denied lockscreen to non-admin roles. Only the Supreme Master Admin (josuva732006@gmail.com) has fleet governance privileges.',
+      a: 'No. The Enterprise Admin Center enforces server-side Role-Based Access Control (RBAC) returning an HTTP 403 Access Denied lockscreen to non-admin roles. Only the Supreme Master Admin (admin@example.com) has fleet governance privileges.',
     },
     {
       q: 'How are payments and financial receipts secured?',
@@ -198,7 +198,7 @@ export default function HomePage() {
             <a href="#features" className="hover:text-white transition-colors">Architecture</a>
             <a href="#pricing" className="hover:text-white transition-colors">Pricing & SLA</a>
             <a href="/login" className="hover:text-white transition-colors">Console</a>
-            <span className="text-emerald-400 font-mono">Master Admin: josuva732006@gmail.com</span>
+            <span className="text-emerald-400 font-mono">Master Admin: admin@example.com</span>
           </div>
         </div>
       </footer>

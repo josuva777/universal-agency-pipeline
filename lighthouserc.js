@@ -2,8 +2,8 @@ module.exports = {
   ci: {
     collect: {
       numberOfRuns: 3,
-      startServerCommand: 'pnpm start',
-      url: ['http://localhost:3000/'],
+      startServerCommand: process.env.LHCI_START_SERVER_COMMAND || undefined,
+      url: [process.env.LHCI_URL || 'http://localhost:3000/'],
     },
     assert: {
       assertions: {
@@ -17,8 +17,9 @@ module.exports = {
       },
     },
     upload: {
-      target: 'temporary-public-storage',
+      // Secure local filesystem output — never upload private client reports to public temporary storage
+      target: 'filesystem',
+      outputDir: './reports/lighthouse',
     },
   },
 };
-

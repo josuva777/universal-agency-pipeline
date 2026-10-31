@@ -17,14 +17,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+          python-version: "3.12"
 
       - name: Install Dependencies
         run: |
-          uv pip install --system pyyaml pydantic pytest pytest-asyncio typer rich httpx
+          python -m pip install --upgrade pip
+          pip install pyyaml pydantic pytest pytest-asyncio typer rich httpx
 
       - name: Pre-Commit Secret Scanner Audit
         run: |
@@ -32,7 +30,7 @@ jobs:
 
       - name: Validate All JSON & YAML Configurations
         run: |
-          pytest tests/test_config_integrity.py
+          python -m pytest tests/test_config_integrity.py -v
 
   python-test-suite:
     name: 🐍 Python Unit & Integration Tests
@@ -51,18 +49,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: Install Dependencies via uv
+      - name: Install Dependencies
         run: |
-          uv pip install --system pytest pytest-asyncio pydantic typer rich pyyaml httpx
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio pydantic typer rich pyyaml httpx
 
       - name: Run Full Test Suite
         env:
           PYTHONPATH: .
         run: |
-          pytest tests/ -v -o asyncio_mode=auto
+          python -m pytest tests/ -v -o asyncio_mode=auto
 
   templates-verification:
     name: 📦 Full-Stack & Mobile Template Build Verification
@@ -89,23 +85,68 @@ jobs:
       - name: Verify Mobile App Structure & Config
         working-directory: templates/mobile-agent-app
         run: |
-          test -f "package.json" || exit 1
-          test -f ".maestro/flows/chat.yaml" || exit 1
-          test -f "app/(tabs)/chat.tsx" || exit 1
-          test -f "app/(tabs)/index.tsx" || exit 1
-          echo "✓ All mobile template routes and Maestro flows verified."
+          node -e "
+            const fs = require('fs');
+            const required = ['package.json', '.maestro/flows/chat.yaml', 'app/(tabs)/chat.tsx', 'app/(tabs)/index.tsx'];
+            for (const f of required) {
+              if (!fs.existsSync(f)) {
+                console.error('Missing required mobile file: ' + f);
+                process.exit(1);
+              }
+            }
+            console.log('✓ All mobile template routes and Maestro flows verified.');
+          "
 
       - name: Verify Monorepo SaaS Structure & Config
         working-directory: templates/monorepo-saas
         run: |
-          test -f "turbo.json" || exit 1
-          test -f "pnpm-workspace.yaml" || exit 1
-          test -f "apps/web/package.json" || exit 1
-          test -f "apps/mobile/package.json" || exit 1
-          test -f "packages/ui/package.json" || exit 1
-          test -f "packages/api/src/tracing.ts" || exit 1
-          test -f "packages/database/schema.prisma" || exit 1
-          echo "✓ Monorepo SaaS template structure verified."
+          node -e "
+            const fs = require('fs');
+            const required = ['turbo.json', 'pnpm-workspace.yaml', 'apps/web/package.json', 'apps/mobile/package.json', 'packages/ui/package.json', 'packages/api/src/tracing.ts', 'packages/database/schema.prisma'];
+            for (const f of required) {
+              if (!fs.existsSync(f)) {
+                console.error('Missing required monorepo file: ' + f);
+                process.exit(1);
+              }
+            }
+            console.log('✓ Monorepo SaaS template structure verified.');
+          "
+
+  lighthouse-and-eval-check:
+    name: ⚡ Lighthouse CI & Promptfoo Integrity Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install pyyaml pydantic pytest pytest-asyncio typer rich httpx
+
+      - name: Verify Promptfoo Evaluation Target
+        run: |
+          python -m pytest tests/test_config_integrity.py -k "test_promptfoo_configuration or test_lighthouse_configuration" -v
+
+      - name: Verify Lighthouse Configuration Security
+        run: |
+          node -e "
+            const c = require('./lighthouserc.js');
+            if (c.ci.upload.target !== 'filesystem') {
+              console.error('Security Gate Failed: Lighthouse must not use public upload storage!');
+              process.exit(1);
+            }
+            console.log('✓ Lighthouse configuration verified with secure filesystem output.');
+          "
 
   supply-chain-security:
     name: 🔒 Supply Chain & SBOM Audit

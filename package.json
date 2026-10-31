@@ -4,16 +4,19 @@
   "description": "Enterprise-grade autonomous development pipeline for web, mobile, and AI agent engineering.",
   "private": true,
   "scripts": {
+    "start": "node -e \"console.log('Universal Agency Pipeline root workspace - run start in specific client project directory')\"",
     "format": "biome check --write .",
     "lint": "biome check .",
     "create": "python -m pipeline.cli",
     "redteam": "promptfoo eval -c tests/promptfoo.yaml",
     "test:integrity": "pytest tests/test_config_integrity.py",
+    "lighthouse": "lhci autorun --config=./lighthouserc.js",
+    "audit:lighthouse": "node tests/test_lighthouse.js",
     "sbom": "cyclonedx-npm --output-format JSON --output-file releases/sbom.json"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
-    "@cyclonedx/cyclonedx-npm": "^6.0.1"
+    "@cyclonedx/cyclonedx-npm": "^6.0.1",
+    "@lhci/cli": "^0.14.0"
   }
 }
-

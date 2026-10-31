@@ -69,7 +69,7 @@ def test_required_repo_structure():
         assert target.exists(), f"Critical required repository file missing: {rel_path}"
 
 def test_promptfoo_configuration():
-    """Verifies that promptfoo.yaml has OWASP LLM01-LLM10 test cases."""
+    """Verifies that promptfoo.yaml has OWASP LLM01-LLM10 test cases and valid provider target."""
     pf = REPO_ROOT / "tests" / "promptfoo.yaml"
     assert pf.exists()
     content = yaml.safe_load(pf.read_text(encoding="utf-8"))
@@ -77,6 +77,15 @@ def test_promptfoo_configuration():
     assert "providers" in content
     assert "tests" in content
     assert len(content["tests"]) >= 50, f"Expected 50+ adversarial tests, found {len(content['tests'])}"
+
+    # Verify provider file actually exists and has call_api entrypoint
+    for prov in content["providers"]:
+        prov_id = prov if isinstance(prov, str) else prov.get("id", "")
+        if prov_id.startswith("python:"):
+            target_path = REPO_ROOT / prov_id.replace("python:", "")
+            assert target_path.exists(), f"Promptfoo provider target file not found on disk: {target_path}"
+            provider_code = target_path.read_text(encoding="utf-8")
+            assert "def call_api" in provider_code, f"Provider {target_path} missing call_api function"
 
 def test_mempalace_structure():
     """Verifies mempalace.yaml rooms and entities.json knowledge graph seeds."""
@@ -104,4 +113,14 @@ def test_mempalace_structure():
     assert "projects" in ent_data
     assert "topics" in ent_data
     assert len(ent_data["topics"]) >= 10
+
+def test_lighthouse_configuration():
+    """Verifies that lighthouserc.js uses secure filesystem reporting instead of public upload."""
+    lh_file = REPO_ROOT / "lighthouserc.js"
+    assert lh_file.exists()
+    content = lh_file.read_text(encoding="utf-8")
+    assert "'filesystem'" in content or '"filesystem"' in content
+    assert "temporary-public-storage" not in content
+    assert "'./reports/lighthouse'" in content or '"./reports/lighthouse"' in content
+
 

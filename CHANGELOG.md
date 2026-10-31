@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `app/login/page.tsx`: Omnichannel login supporting Work Email + Password or 6-digit cryptographic Email OTP.
   - `app/signup/page.tsx`: Anti-sybil registration with disposable domain filtering and 6-digit verification code delivery.
   - `app/dashboard/page.tsx`: Live tenant operations console with sliding-window quota meter, reactive notification counters (N $\rightarrow$ 0), and active session kill-switch.
-  - `app/dashboard/admin/page.tsx`: Supreme Master Admin Center strictly restricted to `josuva732006@gmail.com` with HTTP 403 lockscreen.
+  - `app/dashboard/admin/page.tsx`: Supreme Master Admin Center strictly restricted to `admin@example.com` with HTTP 403 lockscreen.
 - **Anti-Slop Zero-Mistake Scaffolder Engine (`pipeline/cli.py` & `skills/agency-scaffold/SKILL.md`)**: Intelligent domain synthesis automatically tailoring project branding, palette mapping, and layout copy upon scaffolding, forbidding generic AI placeholders.
 
 ## [2.2.0] - 2026-10-28
@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Pre-Deploy Security Skill Upgrade (`skills/pre-deploy-security`)**: Updated security scanning procedure to execute Promptfoo evals alongside Strix pentesting before opening final PRs.
 - **Automated Semantic Release & GitHub Release Publisher (`.github/workflows/release.yml`)**: GitHub Actions workflow that automatically publishes releases on tag push (`v*.*.*`), compiles release notes from `CHANGELOG.md`, generates CycloneDX SBOM (`sbom.json`), computes cryptographic SHA-256 checksums (`LATEST_RELEASE.json`), and uploads release assets.
 - **MemPalace Architectural Memory Seeding (`mempalace.yaml` & `entities.json`)**: Pre-indexed memory wing featuring 7 architectural rooms (`enterprise_guardrails`, `architecture_and_monorepo`, `security_and_auth`, `creative_studio_video`, `observability_and_performance`, `skills_and_tooling`, `adrs_and_decisions`) with zero-token recall of pipeline specifications.
-- **Interactive Project Scaffolder CLI (`pipeline/cli.py`)**: One-command project creation CLI that scaffolds any of the 4 enterprise templates, injects `.agents/` workspace rules, configures `.env` with master admin (`josuva732006@gmail.com`), seeds MemPalace memory, and initializes clean Git.
+- **Interactive Project Scaffolder CLI (`pipeline/cli.py`)**: One-command project creation CLI that scaffolds any of the 4 enterprise templates, injects `.agents/` workspace rules, configures `.env` with master admin (`admin@example.com`), seeds MemPalace memory, and initializes clean Git.
 - **One-Shot Workspace Scaffolder Skill (`skills/agency-scaffold`)**: Enhanced skill with Mode A (one-shot creation from user idea $\rightarrow$ automatic template classification $\rightarrow$ scaffolding $\rightarrow$ Phase 1 Spec Engine) and Mode B (in-situ activation for existing repos).
 
 ## [2.0.0] - 2026-10-26
